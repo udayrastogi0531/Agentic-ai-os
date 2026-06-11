@@ -49,12 +49,12 @@ def strip_html_tags(html: str) -> str:
 
 
 # ── Playwright Browser Automation Core ────────────────────────────────
-
 async def playwright_browser_action(
     action: str,
     url: str | None = None,
     selector: str | None = None,
-    value: str | None = None
+    value: str | None = None,
+    user_id: str | None = None
 ) -> dict:
     """Perform a real browser action using Playwright."""
     try:
@@ -105,15 +105,38 @@ async def playwright_browser_action(
             elif action == "download":
                 if not url:
                     return {"success": False, "error": "URL is missing."}
-                # Setup download listener
+                
+                # Retrieve settings and prepare folder
+                from app.config import get_settings
+                import uuid
+                from pathlib import Path
+                
+                settings = get_settings()
+                user_id_folder = user_id or "default"
+                upload_dir = settings.upload_path / user_id_folder
+                upload_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Setup page navigate
                 await page.goto(url, wait_until="networkidle", timeout=10000)
                 async with page.expect_download() as download_info:
-                    await page.goto(url) # or trigger download click
+                    await page.goto(url)
                 download = await download_info.value
-                path = f"./workspace/{download.suggested_filename}"
-                await download.save_as(path)
+                
+                doc_id = uuid.uuid4()
+                original_filename = download.suggested_filename or "downloaded_file"
+                suffix = Path(original_filename).suffix.lower()
+                filename = f"{doc_id}{suffix}"
+                
+                path = upload_dir / filename
+                await download.save_as(str(path))
                 await browser.close()
-                return {"success": True, "download_path": path}
+                return {
+                    "success": True, 
+                    "download_path": str(path),
+                    "original_filename": original_filename,
+                    "filename": filename,
+                    "doc_id": doc_id
+                }
 
             await browser.close()
             return {"success": False, "error": f"Unknown action: {action}"}
@@ -121,7 +144,6 @@ async def playwright_browser_action(
     except Exception as e:
         logger.error(f"[Browser Agent] Playwright failed: {e}", exc_info=True)
         return {"success": False, "error": str(e)}
-
 
 # ── HTTP Scraper Fallback ─────────────────────────────────────────────
 
@@ -211,7 +233,8 @@ async def run_browser_agent(state: AgentState) -> dict:
     logger.info(f"[Browser Agent] Selected action: {action} on {url}")
 
     # Run Playwright
-    playwright_res = await playwright_browser_action(action, url, selector, value)
+    user_id = state.get("user_id")
+    playwright_res = await playwright_browser_action(action, url, selector, value, user_id)
     
     # Fallback to HTTP if Playwright is unavailable or fails
     if not playwright_res["success"]:
@@ -225,7 +248,84 @@ async def run_browser_agent(state: AgentState) -> dict:
     # Build response
     if scrape_res["success"]:
         if "download_path" in scrape_res:
-            response_text = f"📥 **Download Completed**\n\nThe file was saved successfully to: `{scrape_res['download_path']}`"
+            download_path = scrape_res.get("download_path", "")
+            original_filename = scrape_res.get("original_filename", "")
+            filename = scrape_res.get("filename", "")
+            doc_id = scrape_res.get("doc_id")
+            
+            # Index/Ingest the file immediately!
+            try:
+                import uuid
+                from pathlib import Path
+                from app.database import async_session_factory
+                from app.models.document import Document, DocumentChunk
+                from app.rag.ingest import ingest_file, SUPPORTED_TYPES
+                from app.rag.chunker import chunk_document
+                from app.rag.retriever import rag_retriever
+                
+                user_uuid = uuid.UUID(user_id) if user_id else None
+                if user_uuid and filename and original_filename and doc_id:
+                    file_path = Path(download_path)
+                    suffix = file_path.suffix.lower()
+                    file_type = SUPPORTED_TYPES.get(suffix, "txt")
+                    file_size = file_path.stat().st_size
+                    
+                    async with async_session_factory() as db:
+                        # Create DB record
+                        document = Document(
+                            id=doc_id,
+                            user_id=user_uuid,
+                            filename=filename,
+                            original_filename=original_filename,
+                            file_type=file_type,
+                            file_size=file_size,
+                            storage_path=str(file_path),
+                            status="processing",
+                        )
+                        db.add(document)
+                        await db.flush()
+                        
+                        # Process document
+                        file_type, pages = await ingest_file(file_path, original_filename)
+                        chunks = chunk_document(pages)
+                        
+                        chunk_dicts = []
+                        for chunk in chunks:
+                            chunk_id = str(uuid.uuid4())
+                            db_chunk = DocumentChunk(
+                                id=uuid.UUID(chunk_id),
+                                document_id=doc_id,
+                                chunk_index=chunk.chunk_index,
+                                content=chunk.content,
+                                page_number=chunk.page_number,
+                                embedding_id=chunk_id,
+                                metadata_=chunk.metadata,
+                            )
+                            db.add(db_chunk)
+                            chunk_dicts.append({
+                                "id": chunk_id,
+                                "content": chunk.content,
+                                "chunk_index": chunk.chunk_index,
+                                "page_number": chunk.page_number,
+                            })
+                        
+                        # Store embeddings in ChromaDB
+                        rag_retriever.store_chunks(
+                            chunks=chunk_dicts,
+                            document_id=str(doc_id),
+                            user_id=str(user_uuid),
+                        )
+                        
+                        document.chunk_count = len(chunks)
+                        document.status = "ready"
+                        await db.commit()
+                        
+                    response_text = f"📥 **Download Completed & Indexed!**\n\nThe file `{original_filename}` has been successfully downloaded and ingested into your knowledge base. You can now ask questions about it!"
+                else:
+                    response_text = f"📥 **Download Completed**\n\nThe file was saved successfully to: `{download_path}`"
+            except Exception as e:
+                logger.error(f"[Browser Agent] Indexing of downloaded file failed: {e}", exc_info=True)
+                response_text = f"📥 **Download Completed** but indexing failed: {e}\nSaved path: `{download_path}`"
         else:
             raw_html = scrape_res.get("content", "")
             title = scrape_res.get("title", "Webpage")
