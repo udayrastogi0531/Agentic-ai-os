@@ -192,6 +192,10 @@ class MCPServerProcess:
         self.proc = None
         self.futures.clear()
 
+    def is_running(self) -> bool:
+        """Check if the subprocess is currently active."""
+        return self.proc is not None and self.proc.returncode is None
+
 
 class MCPClientManager:
     """Manages MCP server lifecycle and client-side tool discovery/calling."""
@@ -260,10 +264,34 @@ class MCPClientManager:
         tool_name: str,
         arguments: dict[str, Any],
     ) -> Any:
-        """Call a specific tool on an active MCP server."""
+        """Call a specific tool on an active MCP server with connection recovery."""
         server = self._servers.get(server_name)
-        if not server:
-            raise ValueError(f"MCP server not active or missing: {server_name}")
+        
+        # Connection recovery logic: restart if process is dead or missing
+        if not server or not server.is_running():
+            logger.warning(f"[MCP] Server '{server_name}' is down. Attempting auto-restart recovery...")
+            configs = self._get_server_configs()
+            if server_name in configs and configs[server_name].get("enabled"):
+                try:
+                    if server:
+                        await server.stop()
+                    
+                    config = configs[server_name]
+                    new_server = MCPServerProcess(
+                        name=server_name,
+                        command=config["command"],
+                        args=config["args"],
+                        env=config.get("env")
+                    )
+                    await new_server.start()
+                    self._servers[server_name] = new_server
+                    server = new_server
+                    logger.info(f"[MCP] Recovery successful. Server '{server_name}' restarted.")
+                except Exception as e:
+                    logger.error(f"[MCP] Recovery failed for server '{server_name}': {e}")
+                    raise RuntimeError(f"MCP server '{server_name}' is offline: {e}")
+            else:
+                raise ValueError(f"MCP server not configured/enabled: {server_name}")
 
         return await server.call_method("tools/call", {
             "name": tool_name,
@@ -271,10 +299,12 @@ class MCPClientManager:
         })
 
     async def list_tools(self, server_name: str | None = None) -> list[dict]:
-        """Enumerate tools list."""
+        """Enumerate tools list with validation check."""
         all_tools = []
         for name, server in self._servers.items():
             if server_name and name != server_name:
+                continue
+            if not server.is_running():
                 continue
             try:
                 result = await server.call_method("tools/list")
@@ -283,7 +313,6 @@ class MCPClientManager:
             except Exception as e:
                 logger.error(f"Failed to list tools for server '{name}': {e}")
         return all_tools
-
     async def shutdown(self) -> None:
         """Shutdown all sub-processes."""
         for name, server in list(self._servers.items()):
