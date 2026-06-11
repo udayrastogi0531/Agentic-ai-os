@@ -1,0 +1,60 @@
+# ============================================
+# Uday AI — Git Ignore
+# ============================================
+
+# --- Environment ---
+.env
+.env.local
+.env.production
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+venv/
+.venv/
+env/
+
+# --- Node.js ---
+node_modules/
+.next/
+out/
+.turbo/
+
+# --- Data ---
+data/
+logs/
+models/
+*.db
+*.sqlite3
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Docker ---
+docker/data/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Misc ---
+*.log
+*.tmp
+coverage/
+.coverage
+htmlcov/

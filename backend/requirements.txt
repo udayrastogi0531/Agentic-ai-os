@@ -1,0 +1,74 @@
+# ============================================
+# Uday AI — Backend Dependencies
+# ============================================
+
+# --- Core Framework ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.19
+python-dotenv==1.0.1
+pydantic==2.11.1
+pydantic-settings==2.7.1
+
+# --- Database ---
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.1
+pgvector==0.3.6
+
+# --- Authentication ---
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+bcrypt==4.2.1
+
+# --- AI / LLM ---
+langchain==0.3.14
+langchain-core==0.3.28
+langchain-community==0.3.14
+langchain-openai==0.3.0
+langchain-google-genai==2.0.7
+langchain-ollama==0.3.0
+langgraph==0.2.60
+
+# --- Embeddings & Vector Store ---
+sentence-transformers==3.3.1
+chromadb==0.5.23
+tiktoken==0.8.0
+
+# --- RAG / Document Processing ---
+pymupdf==1.25.1
+python-docx==1.1.2
+pytesseract==0.3.13
+Pillow==11.1.0
+unstructured==0.16.11
+
+# --- Voice ---
+faster-whisper==1.1.0
+piper-tts==1.2.0
+openwakeword==0.6.0
+soundfile==0.12.1
+numpy==1.26.4
+
+# --- Web Search ---
+tavily-python==0.5.0
+duckduckgo-search==7.2.1
+
+# --- MCP ---
+mcp==1.2.0
+
+# --- Utilities ---
+httpx==0.28.1
+aiofiles==24.1.0
+redis==5.2.1
+celery==5.4.0
+orjson==3.10.12
+python-dateutil==2.9.0
+
+# --- Testing ---
+pytest==8.3.4
+pytest-asyncio==0.25.0
+httpx==0.28.1
+
+# --- Development ---
+ruff==0.8.6
+mypy==1.14.1

@@ -1,0 +1,293 @@
+# UDAY AI OS — CTO Master Plan & Architecture Blueprint
+
+This document outlines the architectural changes, component gaps, and execution roadmap required to transform the current project state into a production-grade Personal AI Operating System ("Uday AI").
+
+---
+
+## 1. Gap Analysis of Current Project
+
+Below is a detailed assessment of the differences between the current working codebase and the complete production target vision.
+
+| Area | Current Implementation | Target Vision | Gap Severity | Description |
+|---|---|---|---|---|
+| **Memory System** | Semantic context retrieval and auto-categorization. | Epoc/episodic, semantic, project-level hierarchy with decay scoring and periodic consolidation. | **Medium** | Lacks mathematical exponential decay models and consolidation/forgetting loops. |
+| **RAG Platform** | Upload/delete of PDF, DOCX, TXT. Simple text chunking and cosine similarity query. | Document processing pipeline with Hybrid Search (BM25 + Semantic), re-ranking (Cross-Encoder), metadata filters, and citation validation. | **High** | No hybrid search, no Cross-Encoder re-ranker, and OCR RAG is a basic Tesseract placeholder. |
+| **MCP Integration** | Mocked `MCPClientManager` tool invocation stub. | Full Python MCP client manager supporting stdio/SSE sub-processes dynamically connected to standard servers (filesystem, github, google docs). | **High** | Tools are simulated. No live MCP SDK subprocess lifecycle management. |
+| **Multi-Agent Flow** | Single LangGraph router loop transitioning between planner, tool node, and response builder. | Orchestrated specialists (ResearchAgent, CodingAgent, TaskAgent) using LangGraph state updates. | **Medium** | Graph exists but agents act as basic routing switches. Lacks sub-graphs for autonomous replanning. |
+| **Autonomous Loop** | Single-pass sequential plan execution. | Plan-Execute-Evaluate-Reflect-Replan cycle that handles tool output failures and adapts routes dynamically. | **High** | If a tool node raises an error, the plan halts or outputs the error directly to the response node without trying to replan. |
+| **Knowledge Graph** | Isolated user preferences stored in a JSONB field in the Postgres user table. | Graph Database Schema (using entities and relations) tracking goals, interests, projects, and skills. | **High** | No entity-relation traversal or graph retrieval logic. |
+| **Observability** | Standard logs written via Python `logging`. | Tracing logs database, latency metrics dashboards, execution timelines, and plan failure stats. | **Medium** | Lacks standard OpenTelemetry tracing metrics or structured latency profiling logs. |
+| **Security & Gates** | JWT token auth on REST/WS. Hardcoded API keys in env. | Secret encryption, OAuth integration, and human-in-the-loop confirmation gates before sensitive tasks. | **High** | No confirmation gate checks for operations like file deleting or calendar updates. |
+
+---
+
+## 2. Missing Components
+
+To achieve the Jarvis-like target vision, the following core Python files and services must be built:
+
+1. **`app/memory/decay.py`**: Decay calculations implementing memory relevance scoring based on time-delta curves.
+2. **`app/memory/consolidation.py`**: A background process/worker consolidating short-term episodic items into generalized semantic facts.
+3. **`app/rag/reranker.py`**: Integration with a local Cross-Encoder re-ranking library to improve retrieval precision.
+4. **`app/rag/hybrid.py`**: Hybrid search combiner merging sparse BM25 scores with dense semantic database search.
+5. **`app/mcp/client_real.py`**: Actual python client manager using MCP SDK subprocess communication wrappers.
+6. **`app/agents/specialists/`**: Dedicated graphs and prompts for the `ResearchAgent`, `CodingAgent`, and `TaskAgent`.
+7. **`app/knowledge/graph.py`**: Lightweight triplestore/graph node database utilizing Postgres table relationships to resolve personal context.
+8. **`app/security/gates.py`**: Middleware/Node handlers prompting clients for confirmation requests before execution of write tools.
+
+---
+
+## 3. Prioritized Roadmap
+
+The build sequence is structured in 5 logical phases to ensure continuous integration without breaking compilation:
+
+```mermaid
+gitGraph
+    commit id: "Initial State"
+    branch Phase-1-Memory-and-RAG
+    checkout Phase-1-Memory-and-RAG
+    commit id: "Decay Scoring"
+    commit id: "Hybrid Search"
+    commit id: "Re-ranker"
+    checkout main
+    merge Phase-1-Memory-and-RAG
+    branch Phase-2-MCP-and-Agents
+    checkout Phase-2-MCP-and-Agents
+    commit id: "MCP Client SDK"
+    commit id: "LangGraph Specialists"
+    checkout main
+    merge Phase-2-MCP-and-Agents
+    branch Phase-3-Autonomous-Loop
+    checkout Phase-3-Autonomous-Loop
+    commit id: "Re-planning Cycle"
+    commit id: "Security Gates"
+    checkout main
+    merge Phase-3-Autonomous-Loop
+    branch Phase-4-Knowledge-Graph
+    checkout Phase-4-Knowledge-Graph
+    commit id: "Graph Relations"
+    checkout main
+    merge Phase-4-Knowledge-Graph
+    branch Phase-5-Observability
+    checkout Phase-5-Observability
+    commit id: "Observability Metrics"
+    checkout main
+    merge Phase-5-Observability
+```
+
+---
+
+## 4. Complete Folder Structure
+
+Below is the targeted layout. Files prepended with `[NEW]` will be created:
+
+```
+backend/app/
+├── agents/
+│   ├── specialists/
+│   │   ├── __init__.py
+│   │   ├── [NEW] research.py      # Research Agent logic
+│   │   ├── [NEW] coding.py        # Coding Agent logic
+│   │   └── [NEW] productivity.py  # Task & Agenda planning
+│   ├── graph.py
+│   ├── state.py
+│   ├── planner.py
+│   ├── memory.py
+│   ├── tools.py
+│   ├── response.py
+│   └── router.py
+├── mcp/
+│   ├── __init__.py
+│   ├── client.py
+│   └── [NEW] process.py           # Native MCP stdio client
+├── memory/
+│   ├── __init__.py
+│   ├── manager.py
+│   ├── [NEW] decay.py             # Memory decay curve mathematics
+│   └── [NEW] consolidation.py     # Background worker consolidating logs
+├── rag/
+│   ├── __init__.py
+│   ├── ingest.py
+│   ├── [NEW] reranker.py          # Cross-Encoder re-ranker integration
+│   └── [NEW] hybrid.py            # Hybrid search implementation
+├── [NEW] knowledge/
+│   ├── __init__.py
+│   └── graph.py                   # User Knowledge Graph operations
+└── [NEW] security/
+    ├── __init__.py
+    └── gates.py                   # Confirmation gate routing
+```
+
+---
+
+## 5. Database Schema
+
+The existing tables will be extended with Knowledge Graph nodes, tracking relations, and memory decay timestamps.
+
+```mermaid
+erDiagram
+    users ||--o{ memories : has
+    users ||--o{ graph_nodes : has
+    graph_nodes ||--o{ graph_edges : source
+    graph_nodes ||--o{ graph_edges : target
+
+    memories {
+        uuid id PK
+        uuid user_id FK
+        string category
+        text content
+        float importance
+        float recall_score
+        timestamp last_accessed_at
+        timestamp created_at
+    }
+
+    graph_nodes {
+        uuid id PK
+        uuid user_id FK
+        string label
+        string type "project | goal | skill | relationship"
+        jsonb properties
+    }
+
+    graph_edges {
+        uuid id PK
+        uuid source_id FK
+        uuid target_id FK
+        string relationship_type "member_of | works_on | interacts_with"
+        float weight
+    }
+```
+
+---
+
+## 6. Advanced Memory Architecture
+
+Memory recall utilizes an exponential decay curve combining importance and time-delta since last access:
+
+$$S_{recall} = I \times e^{-\lambda t}$$
+
+Where:
+- $I$: Estimated importance (1.0 to 5.0).
+- $\lambda$: Half-life decay constant.
+- $t$: Time difference since $last\_accessed\_at$.
+
+### Consolidation Workflow
+Short-term memory blocks generated during chat runs are periodically aggregated by an LLM cron task into permanent, structured profile nodes, updating User preferences automatically.
+
+---
+
+## 7. RAG Architecture
+
+```mermaid
+graph LR
+    Query[User Query] --> Embeddings[Generate Embeddings]
+    Query --> BM25[BM25 Sparse Index]
+    Embeddings --> DenseSearch[ChromaDB Vector Search]
+    
+    BM25 --> Hybrid[Hybrid Score Merger]
+    DenseSearch --> Hybrid
+    
+    Hybrid --> ReRanker[Cross-Encoder Re-ranker]
+    ReRanker --> Citations[Generate Source Citations]
+    Citations --> Context[Final LLM Context]
+```
+
+---
+
+## 8. MCP Client Architecture
+
+```python
+# Real Python subprocess transport setup
+import asyncio
+from app.mcp.client import MCPClientManager
+
+# Starts native stdio processes:
+# e.g., subprocess.create_subprocess_exec("npx", "-y", "@modelcontextprotocol/server-filesystem", ...)
+```
+The Real MCP Client handles JSON-RPC packets matching the MCP spec (`tools/list`, `tools/call`) over standard output and input streams asynchronously.
+
+---
+
+## 9. Multi-Agent & Autonomous Loop Architecture
+
+We construct a LangGraph cyclical graph that supports recursive reflection:
+
+```mermaid
+graph TD
+    Start([User Request]) --> MemoryNode[💾 Memory Node]
+    MemoryNode --> Planner[🧠 Planner Node]
+    Planner --> Router{"🔀 Router"}
+    
+    Router -->|execute step| ToolNode["🛠️ Tool Executor Node"]
+    ToolNode --> Evaluate{"🤔 Evaluation Gate"}
+    
+    Evaluate -->|success| NextStep[Update State Step Index]
+    NextStep --> Planner
+    
+    Evaluate -->|failure / mismatch| Replan["🔄 Re-planning Node"]
+    Replan --> Planner
+    
+    Router -->|plan finished| Response["✏️ Response Compiler"]
+    Response --> End([Final Output])
+```
+
+The system evaluates tool results. If execution encounters an error (e.g. file not found, API timeout), the `Re-planning Node` dynamically edits the remaining plan queue and selects alternative tool options before attempting execution again.
+
+---
+
+## 10. Knowledge Graph Design
+
+Using PostgreSQL relations, the Personal Knowledge Graph maps semantic links:
+- **Project** (e.g. Uday AI) $\rightarrow$ requires $\rightarrow$ **Skill** (e.g. Python, LangGraph).
+- **Goal** (e.g. Complete Portfolio) $\rightarrow$ relies on $\rightarrow$ **Project**.
+- **User** $\rightarrow$ knows $\rightarrow$ **Relationship** (e.g. Colleague).
+
+This graph is searched via path-traversal queries and loaded as supplementary prompt context, helping Uday AI understand the relationships between different areas of the user's life.
+
+---
+
+## 11. Security Architecture
+
+To prevent unauthorized actions, we introduce the **Confirmation Gate**:
+- Write/update operations (e.g. writing files, deleting notes, updating tasks) are intercepted.
+- The state updates `approval_required: True` and pauses graph execution.
+- The server pushes a notification over the WebSocket asking the user to Approve or Deny.
+- Once approved, the executor continues.
+
+---
+
+## 12. Production Deployment & Observability
+
+- **Observability**: Graph runs write latency profiles and token metrics to `agent_logs` table in PostgreSQL.
+- **Docker Compose**: Wires hot-reload for dev, Nginx proxy, Redis queue, Postgres tables, and a local ChromaDB service cleanly.
+
+---
+
+## 13. Prioritized Implementation Task List
+
+This is the task checklist we will follow after approval:
+
+### Phase A: Memory Decay & Hybrid RAG
+- [ ] Implement `app/memory/decay.py` scoring algorithm.
+- [ ] Create `app/rag/reranker.py` Cross-Encoder integration.
+- [ ] Create `app/rag/hybrid.py` sparse-dense combiner.
+
+### Phase B: Real MCP Subprocesses
+- [ ] Refactor `app/mcp/client.py` using standard MCP stdio JSON-RPC.
+
+### Phase C: Cyclical Autonomous Planning & Re-planning
+- [ ] Add evaluate node in LangGraph state loop.
+- [ ] Implement automatic replanning step handler on tool errors.
+- [ ] Setup confirmation gates for write actions.
+
+### Phase D: Knowledge Graph & Observability
+- [ ] Setup Knowledge Graph PostgreSQL tables and queries.
+- [ ] Wire execution logs tracking to `agent_logs`.
+
+---
+
+> [!NOTE]
+> This plan has been updated to reflect the full CTO deliverables requested by the user.
+
+> [!IMPORTANT]
+> **Approval Required**: Once you approve this Master Plan, I will begin implementing the items listed in the checklist step-by-step.
