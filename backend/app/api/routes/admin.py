@@ -30,6 +30,9 @@ async def get_analytics(
     db: AsyncSession = Depends(get_db_session),
 ):
     """Get system-wide analytics for the admin dashboard."""
+    from app.models.graph import GraphNode, GraphEdge
+    from app.llm.router import SmartModelRouter
+
     # Total conversations
     total_convs = (
         await db.execute(select(func.count()).select_from(Conversation))
@@ -44,6 +47,28 @@ async def get_analytics(
     total_memories = (
         await db.execute(select(func.count()).select_from(Memory))
     ).scalar() or 0
+
+    # Total graph nodes
+    total_nodes = (
+        await db.execute(select(func.count()).select_from(GraphNode))
+    ).scalar() or 0
+
+    # Total graph edges
+    total_edges = (
+        await db.execute(select(func.count()).select_from(GraphEdge))
+    ).scalar() or 0
+
+    # Graph node types distribution
+    node_types_res = await db.execute(
+        select(GraphNode.type, func.count()).group_by(GraphNode.type)
+    )
+    node_types = {row[0]: row[1] for row in node_types_res.all() if row[0]}
+
+    # Graph edge relationships distribution
+    edge_types_res = await db.execute(
+        select(GraphEdge.relationship_type, func.count()).group_by(GraphEdge.relationship_type)
+    )
+    edge_relationships = {row[0]: row[1] for row in edge_types_res.all() if row[0]}
 
     # Agent usage stats
     agent_stats_stmt = (
@@ -66,8 +91,23 @@ async def get_analytics(
         "total_memories": total_memories,
         "agent_stats": agent_stats,
         "llm_providers": get_available_providers(),
+        "knowledge_graph": {
+            "total_nodes": total_nodes,
+            "total_edges": total_edges,
+            "node_types": node_types,
+            "edge_relationships": edge_relationships
+        },
+        "model_router_stats": SmartModelRouter.stats
     }
 
+
+@router.get("/router/stats", summary="Model router stats")
+async def get_router_stats(
+    user: User = Depends(get_current_admin),
+):
+    """Retrieve detailed model routing telemetry."""
+    from app.llm.router import SmartModelRouter
+    return SmartModelRouter.stats
 
 @router.get("/logs", summary="Agent execution logs")
 async def get_logs(

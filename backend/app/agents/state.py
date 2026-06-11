@@ -48,3 +48,7 @@ class AgentState(TypedDict):
     # Confirmation gate
     approval_required: Optional[bool]
     approved: Optional[bool]
+
+    # Cycle and loop tracking
+    loop_count: int
+

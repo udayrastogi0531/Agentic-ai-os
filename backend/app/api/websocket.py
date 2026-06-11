@@ -233,7 +233,8 @@ async def _stream_response(
         "metadata": {},
         "error": None,
         "approved": False,
-        "approval_required": False
+        "approval_required": False,
+        "loop_count": 0
     }
 
     graph = get_agent_graph()
@@ -255,6 +256,16 @@ async def _stream_response(
                     "evaluate": "Evaluating step outcome...",
                     "replan": "Re-routing plan steps...",
                     "response": "Drafting final response...",
+                    "files_node": "Retrieving relevant files/documents...",
+                    "tasks_node": "Updating task list...",
+                    "notes_node": "Reading/writing note details...",
+                    "memory_node": "Recalling long term memory context...",
+                    "research_node": "Researching details on the web...",
+                    "browser_node": "Running Playwright browser agent...",
+                    "gmail_node": "Interacting with Gmail...",
+                    "calendar_node": "Updating Google Calendar events...",
+                    "coding_node": "Writing/debugging source code...",
+                    "voice_node": "Invoking voice synthesis/processing...",
                 }
                 if name in status_messages:
                     await manager.send_json(user_id, {
@@ -453,6 +464,16 @@ async def _resume_with_approval(
                     "evaluate": "Evaluating step outcome...",
                     "replan": "Re-routing plan steps...",
                     "response": "Drafting final response...",
+                    "files_node": "Retrieving relevant files/documents...",
+                    "tasks_node": "Updating task list...",
+                    "notes_node": "Reading/writing note details...",
+                    "memory_node": "Recalling long term memory context...",
+                    "research_node": "Researching details on the web...",
+                    "browser_node": "Running Playwright browser agent...",
+                    "gmail_node": "Interacting with Gmail...",
+                    "calendar_node": "Updating Google Calendar events...",
+                    "coding_node": "Writing/debugging source code...",
+                    "voice_node": "Invoking voice synthesis/processing...",
                 }
                 if name in status_messages:
                     await manager.send_json(user_id, {

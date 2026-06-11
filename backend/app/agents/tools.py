@@ -14,7 +14,11 @@ from app.agents.task_agent import run_task_agent
 from app.agents.notes_agent import run_notes_agent
 from app.agents.memory_agent import run_memory_agent
 from app.agents.research_agent import run_research_agent
-
+from app.agents.coding_agent import run_coding_agent
+from app.agents.browser_agent import run_browser_agent
+from app.agents.gmail_agent import run_gmail_agent
+from app.agents.calendar_agent import run_calendar_agent
+from app.agents.github_agent import run_github_agent
 logger = logging.getLogger(__name__)
 
 
@@ -64,6 +68,16 @@ async def run_tools_node(state: AgentState) -> dict:
             result = await run_memory_agent(injected_state)
         elif tool_name == "research":
             result = await run_research_agent(injected_state)
+        elif tool_name == "browser":
+            result = await run_browser_agent(injected_state)
+        elif tool_name == "gmail" or tool_name == "email":
+            result = await run_gmail_agent(injected_state)
+        elif tool_name == "calendar":
+            result = await run_calendar_agent(injected_state)
+        elif tool_name == "code" or tool_name == "coding":
+            result = await run_coding_agent(injected_state)
+        elif tool_name == "github":
+            result = await run_github_agent(injected_state)
         elif tool_name == "voice":
             # Direct response for voice control triggers
             result = {

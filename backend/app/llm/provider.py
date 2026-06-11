@@ -26,30 +26,48 @@ def get_llm(
     temperature: float = 0.7,
     max_tokens: int = 4096,
     streaming: bool = False,
+    query: str | None = None,
 ) -> BaseChatModel:
     """
-    Create an LLM instance from the specified provider.
-
-    Args:
-        provider: LLM provider (ollama, openai, gemini). Defaults to config.
-        model: Model name override. Defaults to provider's default.
-        temperature: Sampling temperature.
-        max_tokens: Maximum tokens in response.
-        streaming: Enable streaming output.
-
-    Returns:
-        A LangChain ChatModel instance.
+    Create an LLM instance from the specified provider, with support for
+    dynamic model routing and automatic fallbacks.
     """
-    provider = provider or settings.default_llm_provider
-
-    if provider == "ollama":
-        return _create_ollama(model, temperature, max_tokens, streaming)
-    elif provider == "openai":
-        return _create_openai(model, temperature, max_tokens, streaming)
-    elif provider == "gemini":
-        return _create_gemini(model, temperature, max_tokens, streaming)
+    # If no specific model/provider requested, use Smart Model Router
+    if provider is None and model is None:
+        from app.llm.router import SmartModelRouter
+        provider, model = SmartModelRouter.route(query)
+        logger.info(f"[Model Router] Dynamically routed to: {provider} ({model})")
     else:
-        raise ValueError(f"Unknown LLM provider: {provider}")
+        provider = provider or settings.default_llm_provider
+
+    try:
+        if provider == "ollama":
+            return _create_ollama(model, temperature, max_tokens, streaming)
+        elif provider == "openai":
+            return _create_openai(model, temperature, max_tokens, streaming)
+        elif provider == "gemini":
+            return _create_gemini(model, temperature, max_tokens, streaming)
+        else:
+            raise ValueError(f"Unknown LLM provider: {provider}")
+    except Exception as e:
+        logger.warning(
+            f"[Model Router] Provider '{provider}' creation failed: {e}. "
+            "Executing fallback routing..."
+        )
+        # Fallback sequence: gemini -> openai -> ollama
+        if provider == "gemini":
+            if settings.openai_api_key:
+                logger.info("[Model Router Fallback] Gemini failed, falling back to OpenAI")
+                return _create_openai(None, temperature, max_tokens, streaming)
+            else:
+                logger.info("[Model Router Fallback] Gemini failed, falling back to Ollama")
+                return _create_ollama(None, temperature, max_tokens, streaming)
+        elif provider == "openai":
+            logger.info("[Model Router Fallback] OpenAI failed, falling back to Ollama")
+            return _create_ollama(None, temperature, max_tokens, streaming)
+        else:
+            # Re-raise original exception if absolute fallback fails
+            raise e
 
 
 def _create_ollama(

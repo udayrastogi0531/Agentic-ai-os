@@ -14,15 +14,14 @@ from app.agents.state import AgentState
 
 logger = logging.getLogger(__name__)
 
-
 class PlanStep(BaseModel):
     step_number: int = Field(description="Step number (1-based)")
-    tool: str = Field(description="The tool to execute. Must be one of: files, tasks, notes, voice, memory, direct_answer")
+    tool: str = Field(description="The tool to execute. Must be one of: files, tasks, notes, voice, memory, browser, gmail, calendar, coding, research, github, direct_answer")
     argument: str = Field(description="Parameters or search queries for the tool execution")
 
 
 class PlannerOutput(BaseModel):
-    intent: str = Field(description="User intent classification: files, tasks, notes, voice, memory, direct_answer")
+    intent: str = Field(description="User intent classification: files, tasks, notes, voice, memory, browser, gmail, calendar, coding, research, github, direct_answer")
     plan: list[PlanStep] = Field(description="Sequential execution plan steps to resolve the request")
     reasoning: str = Field(description="Reasoning log behind the execution plan")
 
@@ -36,7 +35,13 @@ Available Tools:
 3. `notes` - Create, view, search, modify personal memos. Use for quick text notes.
 4. `voice` - STT transcription or TTS synthesis queries.
 5. `memory` - Fetch specific facts, preferences, or recall user relationships.
-6. `direct_answer` - Use when the request is conversational and requires no tools.
+6. `browser` - Web browsing, searching, clicking elements, extracting webpage content.
+7. `gmail` - Read, draft, send, or summarize emails.
+8. `calendar` - Manage events, agenda, weekly schedule.
+9. `coding` - Generate, explain, write, or debug software source code.
+10. `research` - Detailed web searches, information synthesis, source citations.
+11. `github` - Manage pull requests, repositories, issues, or commit changes.
+12. `direct_answer` - Use when the request is conversational and requires no tools.
 
 Formulate an optimal plan of steps to execute sequentially.
 """

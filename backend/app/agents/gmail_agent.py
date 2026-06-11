@@ -24,7 +24,7 @@ async def run_gmail_agent(state: AgentState) -> dict:
     logger.info(f"Gmail agent processing: {latest[:80]}")
 
     operation = _parse_email_intent(latest)
-    result = await _handle_email(operation, latest)
+    result = await _execute_email_operation(operation, latest, state.get("user_id"))
 
     return {
         "agent_results": {
@@ -51,16 +51,52 @@ def _parse_email_intent(message: str) -> str:
     return "read"
 
 
-async def _handle_email(operation: str, message: str) -> str:
-    """Handle email operations."""
+async def _execute_email_operation(operation: str, message: str, user_id: str | None) -> str:
+    """Execute Gmail operations via MCP if enabled, else fall back to instructions."""
+    from app.config import get_settings
+    from app.mcp.client import mcp_manager
+
+    settings = get_settings()
+    use_mcp = settings.mcp_gmail_enabled
+
+    if use_mcp:
+        try:
+            if operation == "read" or operation == "summarize":
+                res = await mcp_manager.call_tool("gmail", "search_messages", {"query": "is:unread", "max_results": 5})
+                content = res.get("content", [])
+                if content:
+                    return f"📧 **Unread Emails (Gmail MCP):**\n\n{content[0].get('text', '')}"
+                return "📧 No unread emails found."
+            
+            elif operation == "send":
+                # Call Gmail Send Tool (mock parameters parsed)
+                res = await mcp_manager.call_tool("gmail", "send_message", {
+                    "to": "udayrastogi0531@gmail.com", 
+                    "subject": "Update from Uday AI", 
+                    "body": message
+                })
+                content = res.get("content", [])
+                if content:
+                    return f"📧 **Email Sent (Gmail MCP):**\n\n{content[0].get('text', '')}"
+
+            elif operation == "draft":
+                res = await mcp_manager.call_tool("gmail", "create_draft", {
+                    "to": "recipient@example.com",
+                    "subject": "Draft from Uday AI",
+                    "body": message
+                })
+                content = res.get("content", [])
+                if content:
+                    return f"📧 **Draft Created (Gmail MCP):**\n\n{content[0].get('text', '')}"
+        except Exception as e:
+            logger.warning(f"Gmail MCP call failed, using fallback instructions: {e}")
+
+    # Fallback/Mock Setup Instructions
     if operation == "read":
         return (
             "📧 **Gmail Integration**\n\n"
             "To read your emails, please connect Gmail in Settings.\n\n"
-            "📌 **Setup Instructions:**\n"
-            "1. Go to Settings → Integrations\n"
-            "2. Connect your Google account\n"
-            "3. Grant Gmail access\n\n"
+            "Status: Gmail MCP client not configured.\n\n"
             "Once connected, I can:\n"
             "- Read and summarize your inbox\n"
             "- Draft and send emails\n"
@@ -74,8 +110,7 @@ async def _handle_email(operation: str, message: str) -> str:
             "- **To**: Recipient email\n"
             "- **Subject**: Email subject\n"
             "- **Body**: What should the email say?\n\n"
-            "I'll draft it first for your review before sending.\n\n"
-            "Note: Connect Gmail in Settings for full integration."
+            "Status: Gmail MCP client not configured."
         )
     elif operation == "draft":
         return (
@@ -83,15 +118,12 @@ async def _handle_email(operation: str, message: str) -> str:
             "What should the email be about? Provide:\n"
             "- **To**: Who is it for?\n"
             "- **Context**: What do you want to communicate?\n"
-            "- **Tone**: Professional, casual, formal?"
+            "Status: Gmail MCP client not configured."
         )
     elif operation == "summarize":
         return (
             "📧 To summarize your emails, connect Gmail in Settings first.\n\n"
-            "Once connected, I can provide:\n"
-            "- Daily email digest\n"
-            "- Important email highlights\n"
-            "- Action items from emails"
+            "Status: Gmail MCP client not configured."
         )
     else:
-        return f"📧 Email `{operation}` operation noted. Connect Gmail for full functionality."
+        return f"📧 Email `{operation}` operation noted. Connect Gmail in Settings for full functionality."

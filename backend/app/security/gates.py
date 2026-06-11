@@ -38,4 +38,9 @@ def requires_confirmation(tool: str, argument: str) -> bool:
         if any(w in arg for w in ["create", "add", "save", "delete", "remove", "edit", "update"]):
             return True
             
+    # Browser: click, fill, submit, download, post, login
+    elif tool == "browser":
+        if any(w in arg for w in ["click", "fill", "submit", "download", "post", "login", "buy", "pay"]):
+            return True
+            
     return False

@@ -288,8 +288,10 @@ async def process_message(
         "metrics": {},
         "final_response": "",
         "metadata": {},
-        "error": None
+        "error": None,
+        "loop_count": 0
     }
+
 
     graph = get_agent_graph()
 

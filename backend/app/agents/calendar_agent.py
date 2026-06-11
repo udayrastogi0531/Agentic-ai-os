@@ -25,7 +25,7 @@ async def run_calendar_agent(state: AgentState) -> dict:
     logger.info(f"Calendar agent processing: {latest[:80]}")
 
     operation = _parse_calendar_intent(latest)
-    result = await _handle_calendar(operation, latest)
+    result = await _execute_calendar_operation(operation, latest)
 
     return {
         "agent_results": {
@@ -54,18 +54,67 @@ def _parse_calendar_intent(message: str) -> str:
     return "today"
 
 
-async def _handle_calendar(operation: str, message: str) -> str:
-    """Handle calendar operations."""
+async def _execute_calendar_operation(operation: str, message: str) -> str:
+    """Execute Calendar operations via MCP if enabled, else fall back to instructions."""
+    from app.config import get_settings
+    from app.mcp.client import mcp_manager
+
+    settings = get_settings()
+    use_mcp = settings.mcp_calendar_enabled
     now = datetime.now(timezone.utc)
 
+    if use_mcp:
+        try:
+            if operation == "today":
+                # List events for today
+                t_min = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                t_max = now.replace(hour=23, minute=59, second=59, microsecond=999).isoformat()
+                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max})
+                content = res.get("content", [])
+                if content:
+                    return f"📅 **Today's Events (Calendar MCP):**\n\n{content[0].get('text', '')}"
+                return f"📅 No events scheduled for today ({now.strftime('%B %d, %Y')})."
+            
+            elif operation == "create":
+                # Create an event summary (mock parameters parsed)
+                start_t = (now + timedelta(hours=1)).isoformat()
+                end_t = (now + timedelta(hours=2)).isoformat()
+                res = await mcp_manager.call_tool("calendar", "create_event", {
+                    "calendar_id": "primary",
+                    "summary": f"Event: {message[:50]}",
+                    "start_time": start_t,
+                    "end_time": end_t
+                })
+                content = res.get("content", [])
+                if content:
+                    return f"📅 **Event Scheduled (Calendar MCP):**\n\n{content[0].get('text', '')}"
+
+            elif operation == "tomorrow":
+                tomorrow = now + timedelta(days=1)
+                t_min = tomorrow.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                t_max = tomorrow.replace(hour=23, minute=59, second=59, microsecond=999).isoformat()
+                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max})
+                content = res.get("content", [])
+                if content:
+                    return f"📅 **Tomorrow's Events (Calendar MCP):**\n\n{content[0].get('text', '')}"
+                return f"📅 No events scheduled for tomorrow ({tomorrow.strftime('%B %d, %Y')})."
+
+            elif operation == "week":
+                t_min = now.isoformat()
+                t_max = (now + timedelta(days=7)).isoformat()
+                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max})
+                content = res.get("content", [])
+                if content:
+                    return f"📅 **Weekly Schedule (Calendar MCP):**\n\n{content[0].get('text', '')}"
+        except Exception as e:
+            logger.warning(f"Calendar MCP call failed, using fallback instructions: {e}")
+
+    # Fallback/Mock Setup Instructions
     if operation == "today":
         return (
             f"📅 **Today's Schedule ({now.strftime('%A, %B %d, %Y')})**\n\n"
             f"To see your real calendar, please connect Google Calendar in Settings.\n\n"
-            f"📌 **Setup Instructions:**\n"
-            f"1. Go to Settings → Integrations\n"
-            f"2. Connect your Google account\n"
-            f"3. Grant Calendar access\n\n"
+            f"Status: Calendar MCP client not configured.\n\n"
             f"Once connected, I can:\n"
             f"- Show your daily/weekly schedule\n"
             f"- Create and manage events\n"
@@ -78,20 +127,19 @@ async def _handle_calendar(operation: str, message: str) -> str:
             "Please provide:\n"
             "- **Title**: What's the event?\n"
             "- **Date/Time**: When?\n"
-            "- **Duration**: How long?\n"
-            "- **Description** (optional)\n\n"
-            "Note: Connect Google Calendar in Settings for full integration."
+            "- **Duration**: How long?\n\n"
+            "Status: Calendar MCP client not configured."
         )
     elif operation == "tomorrow":
         tomorrow = now + timedelta(days=1)
         return (
             f"📅 **Tomorrow's Schedule ({tomorrow.strftime('%A, %B %d, %Y')})**\n\n"
-            f"Connect Google Calendar in Settings to see your real schedule."
+            f"Status: Calendar MCP client not configured."
         )
     elif operation == "week":
         return (
             f"📅 **This Week's Schedule**\n\n"
-            f"Connect Google Calendar in Settings to see your weekly view."
+            f"Status: Calendar MCP client not configured."
         )
     else:
-        return f"📅 Calendar `{operation}` operation noted. Connect Google Calendar for full functionality."
+        return f"📅 Calendar `{operation}` operation noted. Connect Google Calendar in Settings for full functionality."
