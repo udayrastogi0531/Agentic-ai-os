@@ -333,6 +333,15 @@ async def _stream_response(
     )
     db.add(ai_msg)
 
+    # Trigger memory consolidation if not paused for approval
+    if not final_state.get("approval_required"):
+        from app.memory.consolidation import consolidate_conversation_memory
+        try:
+            await db.flush()
+            await consolidate_conversation_memory(db, user.id, conversation.id)
+        except Exception as e:
+            logger.warning(f"Failed to consolidate memory in WebSocket: {e}")
+
     conversation.updated_at = datetime.now(timezone.utc)
     await db.commit()
 
@@ -523,6 +532,16 @@ async def _resume_with_approval(
 
     conv_uuid = uuid.UUID(conversation_id)
     conv = await get_conversation(db, conv_uuid, uuid.UUID(user_id))
+
+    # Trigger memory consolidation if not paused for approval
+    if not final_state.get("approval_required") and conv:
+        from app.memory.consolidation import consolidate_conversation_memory
+        try:
+            await db.flush()
+            await consolidate_conversation_memory(db, user.id, conv.id)
+        except Exception as e:
+            logger.warning(f"Failed to consolidate memory in WebSocket resume: {e}")
+
     if conv:
         conv.updated_at = datetime.now(timezone.utc)
     await db.commit()

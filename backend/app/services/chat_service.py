@@ -321,8 +321,12 @@ async def process_message(
     conversation.updated_at = datetime.now(timezone.utc)
     await db.flush()
 
-    # 7. Background: auto-extract memories (simplified version)
-    await _auto_extract_memories(db, user.id, message_text)
+    # 7. Background: run consolidation worker (extract memories + user graph updates)
+    from app.memory.consolidation import consolidate_conversation_memory
+    try:
+        await consolidate_conversation_memory(db, user.id, conversation.id)
+    except Exception as e:
+        logger.warning(f"Failed to consolidate memory: {e}")
 
     return conversation, user_message, ai_message
 
