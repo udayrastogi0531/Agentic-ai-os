@@ -183,6 +183,31 @@ class ApiClient {
     });
   }
 
+  async downloadFile(id: string, originalFilename: string) {
+    const headers: Record<string, string> = {};
+    if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
+
+    const res = await fetch(`${this.baseUrl}/files/${id}/download`, {
+      method: "GET",
+      headers,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(error.detail || "Download failed");
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = originalFilename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
   // ── Tasks ─────────────────────────────────────
 
   async getTasks(status?: string, priority?: string) {

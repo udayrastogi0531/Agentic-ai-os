@@ -196,16 +196,33 @@ export default function FilesPage() {
                             <span className="text-2xl">
                               {file.file_type === "pdf" ? "📕" : file.file_type === "docx" ? "📘" : "📄"}
                             </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(file.id);
-                              }}
-                              className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
-                              style={{ color: "var(--error)" }}
-                            >
-                              🗑️
-                            </button>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    await api.downloadFile(file.id, file.original_filename);
+                                  } catch (err) {
+                                    alert(err instanceof Error ? err.message : "Download failed");
+                                  }
+                                }}
+                                className="p-1 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors text-sm"
+                                title="Download File"
+                              >
+                                📥
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(file.id);
+                                }}
+                                className="p-1 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
+                                style={{ color: "var(--error)" }}
+                                title="Delete File"
+                              >
+                                🗑️
+                              </button>
+                            </div>
                           </div>
                           <h3 className="text-sm font-semibold truncate max-w-xs" style={{ color: "var(--text-primary)" }}>
                             {file.original_filename}

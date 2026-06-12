@@ -190,10 +190,41 @@ async def delete_file(
         Path(document.storage_path).unlink(missing_ok=True)
     except Exception:
         pass
-
     # Delete from DB (cascade deletes chunks)
     await db.delete(document)
     await db.flush()
+
+
+@router.get(
+    "/{file_id}/download",
+    summary="Download a file",
+)
+async def download_file(
+    file_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Download a file's physical content."""
+    stmt = select(Document).where(
+        Document.id == file_id,
+        Document.user_id == user.id,
+    )
+    result = await db.execute(stmt)
+    document = result.scalar_one_or_none()
+
+    if not document:
+        raise HTTPException(status_code=404, detail="File not found.")
+
+    file_path = Path(document.storage_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Physical file is missing.")
+
+    from fastapi.responses import FileResponse as FastAPIFileResponse
+    return FastAPIFileResponse(
+        path=str(file_path),
+        filename=document.original_filename,
+        media_type="application/octet-stream"
+    )
 
 
 @router.post(
