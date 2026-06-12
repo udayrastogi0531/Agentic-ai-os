@@ -25,6 +25,7 @@ from app.agents.browser_agent import run_browser_agent
 from app.agents.gmail_agent import run_gmail_agent
 from app.agents.calendar_agent import run_calendar_agent
 from app.agents.github_agent import run_github_agent
+from app.agents.computer_agent import run_computer_agent
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +172,7 @@ def route_next(state: AgentState) -> str:
         "coding": "coding_node",
         "code": "coding_node",
         "github": "github_node",
+        "computer": "computer_node",
         "voice": "voice_node",
     }
 
@@ -206,6 +208,7 @@ def build_agent_graph() -> StateGraph:
     workflow.add_node("calendar_node", make_agent_node(run_calendar_agent, "calendar"))
     workflow.add_node("coding_node", make_agent_node(run_coding_agent, "coding"))
     workflow.add_node("github_node", make_agent_node(run_github_agent, "github"))
+    workflow.add_node("computer_node", make_agent_node(run_computer_agent, "computer"))
     workflow.add_node("voice_node", make_agent_node(run_voice_agent, "voice"))
 
     # Establish entry point
@@ -226,6 +229,7 @@ def build_agent_graph() -> StateGraph:
     workflow.add_edge("calendar_node", "evaluate")
     workflow.add_edge("coding_node", "evaluate")
     workflow.add_edge("github_node", "evaluate")
+    workflow.add_edge("computer_node", "evaluate")
     workflow.add_edge("voice_node", "evaluate")
 
     # Connect conditional routing edges from planner
@@ -243,6 +247,7 @@ def build_agent_graph() -> StateGraph:
             "calendar_node": "calendar_node",
             "coding_node": "coding_node",
             "github_node": "github_node",
+            "computer_node": "computer_node",
             "voice_node": "voice_node",
             "response": "response",
         }

@@ -17,7 +17,7 @@
 
 | Feature | Description |
 |---------|-------------|
-| 💬 **Conversational AI** | Natural chat with Hinglish support, emotional personality |
+| 💬 **Conversational AI** | Natural chat with Hinglish support, Nidhi voice profile |
 | 🧠 **Long-Term Memory** | Remembers preferences, goals, facts across sessions |
 | 📄 **RAG System** | Upload PDF/DOCX/TXT/Images, ask questions with citations |
 | 🔍 **Research Agent** | Web search, multi-source synthesis, report generation |
@@ -25,11 +25,12 @@
 | 📅 **Calendar Agent** | Google Calendar integration (events, reminders) |
 | 📧 **Gmail Agent** | Read, summarize, draft, send emails |
 | 📝 **Notes Agent** | Smart note-taking with semantic search |
+| 💻 **Computer Agent** | Automate opening apps (VS Code, Chrome), files, directories, and WhatsApp messages |
 | ✅ **Task Agent** | To-do management with daily/weekly planning |
 | 💻 **Coding Agent** | Generate, explain, debug code |
 | 🌐 **Browser Agent** | Web browsing and information extraction |
-| 🎤 **Voice Assistant** | Speech-to-text, text-to-speech, "Hey Uday" wake word |
-| 🤖 **Multi-Agent System** | 10 specialized agents orchestrated by LangGraph |
+| 🎤 **Voice Assistant** | Speech-to-text, text-to-speech, "Hey Nidhi" wake word |
+| 🤖 **Multi-Agent System** | 11 specialized agents orchestrated by LangGraph |
 | 🔌 **MCP Integration** | Model Context Protocol for extensibility |
 
 ---
@@ -45,7 +46,7 @@
 │   REST API • WebSocket • Auth    │
 ├─────────────────────────────────┤
 │   Agent Orchestration (LangGraph)│
-│  Planner → [10 Specialist Agents]│
+│  Planner → [11 Specialist Agents]│
 ├─────────────────────────────────┤
 │   Data Layer                     │
 │  PostgreSQL • ChromaDB • Redis   │
@@ -129,7 +130,7 @@ ollama pull llama3.1:8b
 │
 ├── backend/           # FastAPI Backend (Python)
 │   ├── app/
-│   │   ├── agents/    # LangGraph agents (10 agents)
+│   │   ├── agents/    # LangGraph agents (11 agents)
 │   │   ├── api/       # REST routes + WebSocket
 │   │   ├── llm/       # LLM provider factory
 │   │   ├── memory/    # Long-term memory system
@@ -199,9 +200,9 @@ GET  /api/v1/admin/analytics — Dashboard stats
 - [x] Phase 4: RAG + MCP
 - [x] Phase 5: Frontend Dashboard
 - [x] Phase 6: Docker + Deployment
-- [ ] Phase 7: Voice Pipeline (Whisper + Piper)
-- [ ] Phase 8: Real Google Calendar/Gmail Integration
-- [ ] Phase 9: Advanced Autonomous Workflows
+- [x] Phase 7: Voice Pipeline (Whisper + Piper)
+- [ ] Phase 8: Real Google Calendar/Gmail Integration (MCP Ready)
+- [x] Phase 9: Advanced Autonomous Workflows (Jarvis loops + Safety Gates)
 - [ ] Phase 10: Mobile App (React Native)
 
 ---

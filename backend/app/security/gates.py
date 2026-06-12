@@ -43,4 +43,9 @@ def requires_confirmation(tool: str, argument: str) -> bool:
         if any(w in arg for w in ["click", "fill", "submit", "download", "post", "login", "buy", "pay"]):
             return True
             
+    # Computer: opening apps, running files/folders, sending messages
+    elif tool == "computer":
+        if any(w in arg for w in ["open", "start", "run", "message", "send", "delete", "write"]):
+            return True
+            
     return False

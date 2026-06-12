@@ -265,6 +265,7 @@ async def _stream_response(
                     "gmail_node": "Interacting with Gmail...",
                     "calendar_node": "Updating Google Calendar events...",
                     "coding_node": "Writing/debugging source code...",
+                    "computer_node": "Automating desktop and messaging tasks...",
                     "voice_node": "Invoking voice synthesis/processing...",
                 }
                 if name in status_messages:
@@ -473,6 +474,7 @@ async def _resume_with_approval(
                     "gmail_node": "Interacting with Gmail...",
                     "calendar_node": "Updating Google Calendar events...",
                     "coding_node": "Writing/debugging source code...",
+                    "computer_node": "Automating desktop and messaging tasks...",
                     "voice_node": "Invoking voice synthesis/processing...",
                 }
                 if name in status_messages:

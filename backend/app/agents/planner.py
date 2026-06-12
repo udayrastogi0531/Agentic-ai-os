@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 class PlanStep(BaseModel):
     step_number: int = Field(description="Step number (1-based)")
-    tool: str = Field(description="The tool to execute. Must be one of: files, tasks, notes, voice, memory, browser, gmail, calendar, coding, research, github, direct_answer")
+    tool: str = Field(description="The tool to execute. Must be one of: files, tasks, notes, voice, memory, browser, gmail, calendar, coding, research, github, computer, direct_answer")
     argument: str = Field(description="Parameters or search queries for the tool execution")
 
 
 class PlannerOutput(BaseModel):
-    intent: str = Field(description="User intent classification: files, tasks, notes, voice, memory, browser, gmail, calendar, coding, research, github, direct_answer")
+    intent: str = Field(description="User intent classification: files, tasks, notes, voice, memory, browser, gmail, calendar, coding, research, github, computer, direct_answer")
     plan: list[PlanStep] = Field(description="Sequential execution plan steps to resolve the request")
     reasoning: str = Field(description="Reasoning log behind the execution plan")
 
@@ -41,7 +41,8 @@ Available Tools:
 9. `coding` - Generate, explain, write, or debug software source code.
 10. `research` - Detailed web searches, information synthesis, source citations.
 11. `github` - Manage pull requests, repositories, issues, or commit changes.
-12. `direct_answer` - Use when the request is conversational and requires no tools.
+12. `computer` - Open local apps (VS Code, Chrome), open files, directories, and send browser-based WhatsApp messages.
+13. `direct_answer` - Use when the request is conversational and requires no tools.
 
 Formulate an optimal plan of steps to execute sequentially.
 """
