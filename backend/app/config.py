@@ -77,6 +77,7 @@ class Settings(BaseSettings):
     whisper_model: str = "base"
     piper_model_path: str = str(BASE_DIR / "models" / "piper" / "en_US-lessac-medium.onnx")
     wake_word_model: str = "hey_uday"
+    assistant_voice_profile: str = "Nidhi"
 
     # ── Web Search ────────────────────────────────────────────────────
     tavily_api_key: str = ""

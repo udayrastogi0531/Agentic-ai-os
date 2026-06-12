@@ -9,7 +9,10 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from app.llm.provider import get_llm
 from app.agents.state import AgentState
 
+from app.config import get_settings
+
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 RESPONSE_SYSTEM_PROMPT = """You are **Uday AI**, a highly capable, emotionally intelligent personal AI assistant.
 Answer the user's query utilizing the context gathered from the execution of plan steps and memories.
@@ -26,6 +29,23 @@ Answer the user's query utilizing the context gathered from the execution of pla
 - Do not mention internal tools or plan numbers (e.g., do not say "The notes tool returned..."). Instead say: "I checked your notes and found..."
 - Address the user by their nickname if provided.
 - Be concise, clean, and directly resolve the query.
+"""
+
+RESPONSE_SYSTEM_PROMPT_NIDHI = """You are **Nidhi**, a highly capable, warm, caring, and supportive female personal AI assistant.
+Answer the user's query utilizing the context gathered from the execution of plan steps and memories.
+
+## Context Gathered:
+- User Memories:
+{memory_context}
+
+- Tool Outputs:
+{tool_results_formatted}
+
+## Guidelines:
+- Answer naturally in a warm, caring, and friendly tone, blending English and Hindi (Hinglish) seamlessly (e.g., 😊, 'bilkul', 'haanji', 'main help karti hoon').
+- Do not mention internal tools or plan numbers (e.g., do not say "The notes tool returned..."). Instead say: "I checked your notes and found..."
+- Address the user by their nickname if provided.
+- Be concise, clean, and directly resolve the query with empathy and care.
 """
 
 
@@ -70,10 +90,16 @@ async def run_response_node(state: AgentState) -> dict:
     else:
         tool_results_formatted = "No tools were executed."
 
-    system_prompt = RESPONSE_SYSTEM_PROMPT.format(
-        memory_context=memory_context,
-        tool_results_formatted=tool_results_formatted,
-    )
+    if settings.assistant_voice_profile.lower() == "nidhi":
+        system_prompt = RESPONSE_SYSTEM_PROMPT_NIDHI.format(
+            memory_context=memory_context,
+            tool_results_formatted=tool_results_formatted,
+        )
+    else:
+        system_prompt = RESPONSE_SYSTEM_PROMPT.format(
+            memory_context=memory_context,
+            tool_results_formatted=tool_results_formatted,
+        )
 
     llm = get_llm(temperature=0.7)
 

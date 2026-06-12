@@ -232,16 +232,52 @@ async def run_browser_agent(state: AgentState) -> dict:
 
     logger.info(f"[Browser Agent] Selected action: {action} on {url}")
 
-    # Run Playwright
+    # Run Playwright or Browser MCP
     user_id = state.get("user_id")
-    playwright_res = await playwright_browser_action(action, url, selector, value, user_id)
+    from app.config import get_settings
+    from app.mcp.client import mcp_manager
+
+    settings = get_settings()
+    use_mcp = settings.mcp_browser_enabled
+    playwright_res = {"success": False, "error": "Not executed"}
+
+    if use_mcp:
+        try:
+            logger.info(f"[Browser Agent] Attempting execution via Browser MCP for action '{action}'")
+            if action in ("open", "extract", "summarize"):
+                res = await mcp_manager.call_tool("browser", "playwright_navigate", {"url": url})
+                content = res.get("content", [])
+                text = content[0].get("text", "") if content else ""
+                playwright_res = {"success": True, "title": "MCP Browser Navigation", "content": text}
+            elif action == "click":
+                await mcp_manager.call_tool("browser", "playwright_navigate", {"url": url})
+                res = await mcp_manager.call_tool("browser", "playwright_click", {"selector": selector})
+                content = res.get("content", [])
+                text = content[0].get("text", "") if content else ""
+                playwright_res = {"success": True, "title": "MCP Browser Click", "content": text}
+            elif action == "fill":
+                await mcp_manager.call_tool("browser", "playwright_navigate", {"url": url})
+                res = await mcp_manager.call_tool("browser", "playwright_fill", {"selector": selector, "value": value})
+                content = res.get("content", [])
+                text = content[0].get("text", "") if content else ""
+                playwright_res = {"success": True, "title": "MCP Browser Fill", "content": text}
+            elif action == "download":
+                logger.info("[Browser Agent] Action 'download' falls back to native Playwright driver.")
+                playwright_res = await playwright_browser_action(action, url, selector, value, user_id)
+            else:
+                playwright_res = {"success": False, "error": f"Action '{action}' not supported via Browser MCP."}
+        except Exception as mcp_err:
+            logger.warning(f"[Browser Agent] Browser MCP failed: {mcp_err}. Falling back to native Playwright.")
+            playwright_res = await playwright_browser_action(action, url, selector, value, user_id)
+    else:
+        playwright_res = await playwright_browser_action(action, url, selector, value, user_id)
     
     # Fallback to HTTP if Playwright is unavailable or fails
     if not playwright_res["success"]:
         if action in ("open", "extract", "summarize") and url:
             scrape_res = await http_scraper_action(url)
         else:
-            scrape_res = playwright_res # Return the Playwright error
+            scrape_res = playwright_res  # Return the Playwright error
     else:
         scrape_res = playwright_res
 

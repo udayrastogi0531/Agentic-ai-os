@@ -256,6 +256,41 @@ class MCPClientManager:
                 "env": {"GITHUB_PERSONAL_ACCESS_TOKEN": settings.github_token},
                 "description": "GitHub repository integration",
             },
+            "browser": {
+                "enabled": settings.mcp_browser_enabled,
+                "command": "npx" if os.name != "nt" else "npx.cmd",
+                "args": [
+                    "-y",
+                    "@modelcontextprotocol/server-playwright",
+                ],
+                "description": "Playwright browser control",
+            },
+            "gmail": {
+                "enabled": settings.mcp_gmail_enabled,
+                "command": "npx" if os.name != "nt" else "npx.cmd",
+                "args": [
+                    "-y",
+                    "@modelcontextprotocol/server-gmail",
+                ],
+                "env": {
+                    "GOOGLE_CLIENT_ID": settings.google_client_id,
+                    "GOOGLE_CLIENT_SECRET": settings.google_client_secret,
+                },
+                "description": "Gmail integration",
+            },
+            "calendar": {
+                "enabled": settings.mcp_calendar_enabled,
+                "command": "npx" if os.name != "nt" else "npx.cmd",
+                "args": [
+                    "-y",
+                    "@modelcontextprotocol/server-google-calendar",
+                ],
+                "env": {
+                    "GOOGLE_CLIENT_ID": settings.google_client_id,
+                    "GOOGLE_CLIENT_SECRET": settings.google_client_secret,
+                },
+                "description": "Google Calendar integration",
+            },
         }
 
     async def call_tool(
