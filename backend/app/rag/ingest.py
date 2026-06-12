@@ -63,19 +63,53 @@ async def ingest_file(
 
 
 async def _extract_pdf(file_path: Path) -> list[str]:
-    """Extract text from a PDF file."""
+    """
+    Extract text from a PDF file using PyMuPDF (fitz), falling back to OCR
+    for pages with empty text streams.
+    """
     try:
-        import fitz  # PyMuPDF
+        import fitz
+        from PIL import Image
+        import io
+        try:
+            import pytesseract
+            has_pytesseract = True
+        except ImportError:
+            has_pytesseract = False
 
-        pages = []
         doc = fitz.open(str(file_path))
-        for page in doc:
+        pages = []
+
+        for page_num in range(len(doc)):
+            page = doc[page_num]
             text = page.get_text()
-            if text.strip():
-                pages.append(text)
-        doc.close()
+
+            if not text.strip():
+                # Empty text stream, fall back to OCR
+                if has_pytesseract:
+                    logger.info(f"Page {page_num + 1} of {file_path.name} is empty. Attempting OCR fallback.")
+                    try:
+                        # Get pixmap
+                        pix = page.get_pixmap(dpi=150)  # 150 DPI is standard for legible OCR
+                        # Convert to PIL Image
+                        img_data = pix.tobytes("png")
+                        img = Image.open(io.BytesIO(img_data))
+                        # Perform OCR
+                        ocr_text = pytesseract.image_to_string(img)
+                        if ocr_text.strip():
+                            text = ocr_text
+                        else:
+                            text = f"[Page {page_num + 1}: Empty scanned page — no text detected via OCR]"
+                    except Exception as ocr_err:
+                        logger.error(f"OCR failed for page {page_num + 1} of {file_path.name}: {ocr_err}")
+                        text = f"[Page {page_num + 1}: Empty page — OCR failed: {ocr_err}]"
+                else:
+                    text = f"[Page {page_num + 1}: Empty page — OCR not available]"
+            
+            pages.append(text)
 
         logger.info(f"Extracted {len(pages)} pages from PDF: {file_path.name}")
+        doc.close()
         return pages
     except Exception as e:
         logger.error(f"PDF extraction failed: {e}")
