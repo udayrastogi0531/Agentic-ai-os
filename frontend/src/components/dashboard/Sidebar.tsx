@@ -21,6 +21,10 @@ const NAV_ITEMS = [
   { name: "Calendar",   href: "/calendar",   icon: "◫",  emoji: "📅" },
   { name: "Gmail",      href: "/gmail",      icon: "◬",  emoji: "📧" },
   { name: "Notes",      href: "/notes",      icon: "◭",  emoji: "📝" },
+  { name: "Agents",     href: "/agents",     icon: "🤖",  emoji: "🤖" },
+  { name: "Jobs",       href: "/jobs",       icon: "💼",  emoji: "💼" },
+  { name: "Resume",     href: "/resume",     icon: "📄",  emoji: "📄" },
+  { name: "Profile",    href: "/profile",    icon: "👤",  emoji: "👤" },
 ];
 
 const BOTTOM_ITEMS = [

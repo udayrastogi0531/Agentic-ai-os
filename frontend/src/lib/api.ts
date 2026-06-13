@@ -88,7 +88,7 @@ class ApiClient {
     return this.request<unknown>("GET", "/auth/me");
   }
 
-  async updateProfile(data: Record<string, unknown>) {
+  async updateMe(data: Record<string, unknown>) {
     return this.request<unknown>("PATCH", "/auth/me", data);
   }
 
@@ -301,6 +301,84 @@ class ApiClient {
       throw new Error("TTS synthesis failed");
     }
     return res.blob();
+  }
+
+  // ── Profile ──────────────────────────────────────────────────────────
+
+  async getProfile(): Promise<any> {
+    return this.request("GET", "/profile");
+  }
+
+  async updateProfile(data: Record<string, any>): Promise<any> {
+    return this.request("PUT", "/profile", data);
+  }
+
+  async uploadResume(resumeText: string, resumeUrl?: string): Promise<any> {
+    return this.request("POST", "/profile/resume", { resume_text: resumeText, resume_url: resumeUrl });
+  }
+
+  // ── Jobs ─────────────────────────────────────────────────────────────
+
+  async getJobs(): Promise<any> {
+    return this.request("GET", "/jobs");
+  }
+
+  async searchJobs(params: { query: string; job_type?: string; location?: string; count?: number }): Promise<any> {
+    return this.request("POST", "/jobs/search", params);
+  }
+
+  async analyzeJD(jobDescription: string): Promise<any> {
+    return this.request("POST", "/jobs/analyze", { job_description: jobDescription });
+  }
+
+  async matchResumeToJob(jobDescription: string, resumeText?: string): Promise<any> {
+    return this.request("POST", "/jobs/match", { job_description: jobDescription, resume_text: resumeText });
+  }
+
+  async saveJob(jobData: Record<string, any>): Promise<any> {
+    return this.request("POST", "/jobs/save", jobData);
+  }
+
+  async generateJobCoverLetter(jobId: string): Promise<any> {
+    return this.request("POST", `/jobs/${jobId}/cover-letter`, {});
+  }
+
+  async updateJobStatus(jobId: string, data: { status: string; notes?: string; cover_letter?: string }): Promise<any> {
+    return this.request("PUT", `/jobs/${jobId}/status`, data);
+  }
+
+  async deleteJob(jobId: string): Promise<any> {
+    return this.request("DELETE", `/jobs/${jobId}`);
+  }
+
+  // ── Resume ───────────────────────────────────────────────────────────
+
+  async analyzeResume(data: { resume_text?: string; target_role?: string }): Promise<any> {
+    return this.request("POST", "/resume/analyze", data);
+  }
+
+  async improveResume(data: { resume_text?: string; target_role?: string; job_description?: string }): Promise<any> {
+    return this.request("POST", "/resume/improve", data);
+  }
+
+  async generateATSResume(): Promise<any> {
+    return this.request("POST", "/resume/generate", {});
+  }
+
+  async generateCoverLetter(data: { job_description: string; company_name?: string; resume_text?: string }): Promise<any> {
+    return this.request("POST", "/resume/cover-letter", data);
+  }
+
+  async generateLinkedIn(data: { additional_context?: string }): Promise<any> {
+    return this.request("POST", "/resume/linkedin", data);
+  }
+
+  async generatePortfolio(projects?: any[]): Promise<any> {
+    return this.request("POST", "/resume/portfolio", { projects });
+  }
+
+  async getATSScore(): Promise<any> {
+    return this.request("GET", "/resume/ats-score");
   }
 }
 

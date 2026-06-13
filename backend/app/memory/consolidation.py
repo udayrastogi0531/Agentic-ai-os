@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class ExtractedMemory(BaseModel):
     fact: str = Field(description="A distinct, concise personal fact or preference about the user")
-    category: str = Field(description="Category of the fact: profile, goals, tasks, interests, relations")
+    category: str = Field(description="Category of the fact: profile, goals, tasks, interests, relations, career, project, relationship, emotion, learning, placement")
     importance: float = Field(description="Estimated importance score from 1.0 (low) to 5.0 (critical)")
 
 

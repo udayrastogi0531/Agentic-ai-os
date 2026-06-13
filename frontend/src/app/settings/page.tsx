@@ -65,7 +65,7 @@ export default function SettingsPage() {
     };
 
     try {
-      await api.updateProfile({
+      await api.updateMe({
         name,
         nickname: nickname || null,
         preferences,

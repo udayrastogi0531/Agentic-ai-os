@@ -1,5 +1,5 @@
 """
-Uday AI — FastAPI Application Entry Point
+Nidhi AI OS — FastAPI Application Entry Point
 
 Creates and configures the FastAPI application with:
 - CORS middleware
@@ -82,12 +82,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     health_task = asyncio.create_task(poll_providers_health())
 
-    logger.info("✅ Uday AI Backend is ready!")
+    logger.info("✅ Nidhi AI Backend is ready! ❤️")
 
     yield
 
     # Shutdown
-    logger.info("🛑 Shutting down Uday AI Backend...")
+    logger.info("🛑 Shutting down Nidhi AI Backend...")
     health_task.cancel()
     try:
         await health_task
@@ -131,10 +131,9 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         description=(
-            "Uday AI — Personal AI Operating System. "
-            "A production-grade AI assistant combining conversational AI, "
-            "long-term memory, multi-agent orchestration, RAG, voice, "
-            "and productivity integrations."
+            "Nidhi AI OS — Your Personal AI Companion and Operating System. "
+            "Combines conversational AI, long-term memory, multi-agent orchestration, "
+            "RAG, voice, job search, resume analysis, and productivity integrations."
         ),
         version="1.0.0",
         lifespan=lifespan,
@@ -187,6 +186,7 @@ def create_app() -> FastAPI:
 def _register_routes(app: FastAPI) -> None:
     """Register all API route modules."""
     from app.api.routes import auth, chat, memory, files, tasks, notes, admin, voice
+    from app.api.routes import profile, jobs, resume
     from app.api.websocket import websocket_chat_handler
 
     api_prefix = "/api/v1"
@@ -200,6 +200,9 @@ def _register_routes(app: FastAPI) -> None:
     app.include_router(notes.router, prefix=api_prefix)
     app.include_router(admin.router, prefix=api_prefix)
     app.include_router(voice.router, prefix=api_prefix)
+    app.include_router(profile.router, prefix=api_prefix)
+    app.include_router(jobs.router, prefix=api_prefix)
+    app.include_router(resume.router, prefix=api_prefix)
 
     # WebSocket routes
     @app.websocket("/ws/chat/{conversation_id}")
