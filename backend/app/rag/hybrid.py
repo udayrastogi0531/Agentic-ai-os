@@ -1,5 +1,5 @@
 """
-Uday AI — Hybrid Search Combiner
+Nidhi — Hybrid Search Combiner
 
 Combines Dense Semantic Search (vector distance) with Sparse Keyword Search (BM25 Okapi)
 using a weighted linear combination.

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Voice Overlay Component
+ * Nidhi — Voice Overlay Component
  *
  * Premium glassmorphic voice interaction overlay with waveform visualizer.
  */
@@ -141,7 +141,7 @@ export default function VoiceOverlay({ isOpen, onClose, onSendText }: VoiceOverl
           <h2 className="text-xl font-bold uppercase tracking-wider gradient-text">
             {status === "listening" && "Listening..."}
             {status === "processing" && "Processing..."}
-            {status === "speaking" && "Uday AI speaking"}
+            {status === "speaking" && "Nidhi speaking"}
             {status === "idle" && "Tap mic to talk"}
           </h2>
           <p className="text-sm mt-2 max-w-sm" style={{ color: "var(--text-secondary)" }}>

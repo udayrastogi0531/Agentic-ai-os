@@ -1,5 +1,5 @@
 """
-Uday AI — Symmetric Token Encryption
+Nidhi — Symmetric Token Encryption
 """
 
 import base64

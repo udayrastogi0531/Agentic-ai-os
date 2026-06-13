@@ -1,5 +1,5 @@
 """
-Uday AI — Gmail Agent
+Nidhi — Gmail Agent
 
 Gmail integration for email management.
 Currently uses mock/placeholder - requires Google OAuth setup for real integration.
@@ -73,7 +73,7 @@ async def _execute_email_operation(operation: str, message: str, user_id: Any | 
                 # Call Gmail Send Tool (mock parameters parsed)
                 res = await mcp_manager.call_tool("gmail", "send_message", {
                     "to": "udayrastogi0531@gmail.com", 
-                    "subject": "Update from Uday AI", 
+                    "subject": "Update from Nidhi", 
                     "body": message
                 }, user_id=user_id)
                 content = res.get("content", [])
@@ -83,7 +83,7 @@ async def _execute_email_operation(operation: str, message: str, user_id: Any | 
             elif operation == "draft":
                 res = await mcp_manager.call_tool("gmail", "create_draft", {
                     "to": "recipient@example.com",
-                    "subject": "Draft from Uday AI",
+                    "subject": "Draft from Nidhi",
                     "body": message
                 }, user_id=user_id)
                 content = res.get("content", [])

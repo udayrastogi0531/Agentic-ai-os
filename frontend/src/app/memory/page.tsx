@@ -64,7 +64,7 @@ export default function MemoryPage() {
 
   // Handle Delete
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want Uday AI to forget this memory?")) return;
+    if (!confirm("Are you sure you want Nidhi to forget this memory?")) return;
 
     try {
       await api.deleteMemory(id);

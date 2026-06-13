@@ -1,5 +1,5 @@
 """
-Uday AI — MCP Client Manager
+Nidhi — MCP Client Manager
 
 Handles starting enabled MCP servers as subprocesses (stdio transport),
 negotiates tools list, and invokes actions over JSON-RPC.

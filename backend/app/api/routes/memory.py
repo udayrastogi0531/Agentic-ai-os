@@ -1,5 +1,5 @@
 """
-Uday AI — Memory Routes
+Nidhi — Memory Routes
 
 REST endpoints for memory management and semantic search.
 """

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Notes Page
+ * Nidhi — Notes Page
  *
  * Full featured notes pad with pin functionality, grid list, search, inline creation/edit.
  */

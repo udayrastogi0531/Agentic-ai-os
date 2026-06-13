@@ -1,5 +1,5 @@
 """
-Uday AI — Speech-to-Text (Whisper)
+Nidhi — Speech-to-Text (Whisper)
 
 Uses faster-whisper for efficient speech recognition.
 """

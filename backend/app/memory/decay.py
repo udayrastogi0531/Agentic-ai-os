@@ -1,5 +1,5 @@
 """
-Uday AI — Memory Decay Scoring
+Nidhi — Memory Decay Scoring
 
 Implements exponential decay math to rank memory items dynamically based on age and access history.
 """

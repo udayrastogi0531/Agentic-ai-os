@@ -1,5 +1,5 @@
 """
-Uday AI — Document Chunk Re-ranker
+Nidhi — Document Chunk Re-ranker
 
 Re-ranks retrieved document chunks against the user query for high-precision retrieval.
 """

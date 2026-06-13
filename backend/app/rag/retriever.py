@@ -1,5 +1,5 @@
 """
-Uday AI — RAG Retriever
+Nidhi — RAG Retriever
 
 Retrieves relevant document chunks from ChromaDB for question answering.
 """

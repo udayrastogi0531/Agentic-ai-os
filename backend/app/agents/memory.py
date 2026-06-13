@@ -1,5 +1,5 @@
 """
-Uday AI — Memory Node
+Nidhi — Memory Node
 """
 
 from __future__ import annotations

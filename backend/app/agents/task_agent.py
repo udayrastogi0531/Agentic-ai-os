@@ -1,5 +1,5 @@
 """
-Uday AI — Task Agent
+Nidhi — Task Agent
 
 Task management: create, update, list, and plan tasks.
 """

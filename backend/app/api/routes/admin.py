@@ -1,5 +1,5 @@
 """
-Uday AI — Admin Routes
+Nidhi — Admin Routes
 
 Agent monitoring, logs, and analytics for the admin panel.
 """

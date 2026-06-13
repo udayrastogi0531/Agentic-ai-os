@@ -1,5 +1,5 @@
 """
-Uday AI — WebSocket Handler
+Nidhi — WebSocket Handler
 
 Real-time streaming chat over WebSocket.
 Protocol:

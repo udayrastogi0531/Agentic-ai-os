@@ -1,5 +1,5 @@
 """
-Uday AI — Chat Service
+Nidhi — Chat Service
 
 Core conversation logic:
 - Manage conversations (create, list, get)
@@ -31,7 +31,7 @@ settings = get_settings()
 
 # ── System Prompts ─────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are **Uday AI**, a highly capable, emotionally intelligent personal AI assistant.
+SYSTEM_PROMPT = """You are **Nidhi**, a highly capable, emotionally intelligent personal AI assistant.
 
 ## Your Personality:
 - Friendly, warm, and supportive like a close friend

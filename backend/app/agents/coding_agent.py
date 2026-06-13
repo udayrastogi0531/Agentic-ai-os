@@ -1,5 +1,5 @@
 """
-Uday AI — Coding Agent
+Nidhi — Coding Agent
 
 Code generation, explanation, debugging, and project creation.
 """

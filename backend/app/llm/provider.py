@@ -1,5 +1,5 @@
 """
-Uday AI — Unified LLM Provider
+Nidhi — Unified LLM Provider
 
 Factory pattern to create LLM instances from different providers.
 Supports Ollama (local), OpenAI, and Google Gemini.

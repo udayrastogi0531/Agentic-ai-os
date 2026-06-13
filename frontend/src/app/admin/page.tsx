@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Admin Panel
+ * Nidhi — Admin Panel
  *
  * Full monitor dashboard displaying agent calls, duration metrics, and recent execution logs.
  */
@@ -180,7 +180,7 @@ export default function AdminPage() {
               {isLoading ? (
                 <div className="p-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>Loading logs...</div>
               ) : logs.length === 0 ? (
-                <div className="p-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>No log records found. Logs will populate as you prompt Uday AI.</div>
+                <div className="p-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>No log records found. Logs will populate as you prompt Nidhi.</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">

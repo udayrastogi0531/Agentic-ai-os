@@ -1,5 +1,5 @@
 """
-Uday AI — API Dependencies
+Nidhi — API Dependencies
 
 Shared dependencies for route handlers:
 - Database session injection

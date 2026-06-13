@@ -1,5 +1,5 @@
 /**
- * Uday AI — TypeScript Types
+ * Nidhi — TypeScript Types
  */
 
 // ── User & Auth ─────────────────────────────────

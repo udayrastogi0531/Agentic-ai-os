@@ -1,5 +1,5 @@
 """
-Uday AI — Memory Categorizer
+Nidhi — Memory Categorizer
 
 Automatically categorizes memories using LLM analysis.
 Categories: preference, goal, fact, event, relationship, habit, skill.

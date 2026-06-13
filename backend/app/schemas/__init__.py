@@ -1,5 +1,5 @@
 """
-Uday AI — Pydantic Schemas Package
+Nidhi — Pydantic Schemas Package
 """
 
 from app.schemas.auth import *  # noqa: F401, F403

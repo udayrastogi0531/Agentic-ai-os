@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Gmail Page
+ * Nidhi — Gmail Page
  *
  * Displays recent emails and drafts when connected in user settings.
  */
@@ -27,7 +27,7 @@ const MOCK_MAILS: MailItem[] = [
     id: "1",
     sender: "Google Workspace Team",
     senderEmail: "workspace-noreply@google.com",
-    subject: "Secure your Uday AI Developer credentials",
+    subject: "Secure your Nidhi Developer credentials",
     snippet: "You recently created new OAuth client credentials in your GCP console. Ensure that you restrict access...",
     time: "10:45 AM",
     isRead: false,
@@ -57,7 +57,7 @@ const MOCK_MAILS: MailItem[] = [
     id: "4",
     sender: "To: John Doe",
     senderEmail: "john.doe@example.com",
-    subject: "Uday AI Deployment status check",
+    subject: "Nidhi Deployment status check",
     snippet: "Hi John, just wanted to check if you had a chance to test the docker-compose deployment configuration on staging...",
     time: "June 08",
     isRead: true,

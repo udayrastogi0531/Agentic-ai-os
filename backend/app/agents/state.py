@@ -1,5 +1,5 @@
 """
-Uday AI — LangGraph Agent State
+Nidhi — LangGraph Agent State
 """
 
 from __future__ import annotations

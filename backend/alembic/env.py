@@ -1,5 +1,5 @@
 """
-Uday AI — Alembic Environment Configuration
+Nidhi — Alembic Environment Configuration
 
 Configures async migration support for SQLAlchemy.
 """

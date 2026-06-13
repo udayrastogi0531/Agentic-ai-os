@@ -1,5 +1,5 @@
 """
-Uday AI — Application Configuration
+Nidhi — Application Configuration
 
 Centralized settings management using Pydantic Settings.
 All values are loaded from environment variables with sensible defaults.
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     )
 
     # ── Application ───────────────────────────────────────────────────
-    app_name: str = "Uday AI"
+    app_name: str = "Nidhi"
     app_env: Literal["development", "staging", "production"] = "development"
     debug: bool = True
     secret_key: str = "change-me-in-production"

@@ -1,5 +1,5 @@
 """
-Uday AI — Citation Tracking
+Nidhi — Citation Tracking
 
 Formats and tracks citations from RAG retrieval for trustworthy responses.
 """

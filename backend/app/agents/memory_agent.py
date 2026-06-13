@@ -1,5 +1,5 @@
 """
-Uday AI — Memory Agent
+Nidhi — Memory Agent
 
 Handles memory-related queries:
 - Recall past information

@@ -1,5 +1,5 @@
 """
-Uday AI — Google OAuth Service
+Nidhi — Google OAuth Service
 """
 
 from __future__ import annotations

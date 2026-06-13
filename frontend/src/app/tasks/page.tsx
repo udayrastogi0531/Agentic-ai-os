@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Tasks Page
+ * Nidhi — Tasks Page
  *
  * Full productivity task board with stats, status toggle, filtering, creation, and deletion.
  */

@@ -1,5 +1,5 @@
 """
-Uday AI — File Schemas (RAG)
+Nidhi — File Schemas (RAG)
 """
 
 from __future__ import annotations

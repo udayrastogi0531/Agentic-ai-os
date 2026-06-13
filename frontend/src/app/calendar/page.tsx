@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Calendar Page
+ * Nidhi — Calendar Page
  *
  * Displays active meetings and calendar schedules when connected in user settings.
  */
@@ -20,7 +20,7 @@ interface EventItem {
 }
 
 const MOCK_EVENTS: EventItem[] = [
-  { id: "1", title: "🤖 Daily Standup — Uday AI Projects", time: "09:30 AM", duration: "30 min", type: "work" },
+  { id: "1", title: "🤖 Daily Standup — Nidhi Projects", time: "09:30 AM", duration: "30 min", type: "work" },
   { id: "2", title: "🎨 Design Critique & Glassmorphic UI Review", time: "11:00 AM", duration: "1 hour", type: "design" },
   { id: "3", title: "⚡ Agentic Workflow Architecture Sync", time: "02:00 PM", duration: "45 min", type: "tech" },
   { id: "4", title: "🍕 Lunch with Team", time: "01:00 PM", duration: "1 hour", type: "social" },

@@ -1,5 +1,5 @@
 """
-Uday AI — LangGraph Orchestrator
+Nidhi — LangGraph Orchestrator
 
 The central multi-agent orchestration graph.
 Routes user messages through the Planner to specialized agents.

@@ -1,8 +1,8 @@
 # ==============================================================================
-# Uday AI OS — Production Kubernetes Manifests
+# Nidhi AI OS — Production Kubernetes Manifests
 # ==============================================================================
 # 
-# This file defines the complete container deployment architecture for Uday AI OS.
+# This file defines the complete container deployment architecture for Nidhi AI OS.
 # Includes:
 #   - Namespace setup
 #   - Secrets & ConfigMaps for unified environment management

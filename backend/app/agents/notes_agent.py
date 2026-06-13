@@ -1,5 +1,5 @@
 """
-Uday AI — Notes Agent
+Nidhi — Notes Agent
 
 Create, search, and manage notes with semantic search.
 """

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Research Portal Page
+ * Nidhi — Research Portal Page
  *
  * Dedicated research dashboard interface that triggers deep-dive web research requests
  * to the backend Research Agent and renders generated markdown reports.
@@ -80,7 +80,7 @@ export default function ResearchPage() {
                 type="text"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="What topic would you like Uday AI to research? (e.g. 'Compare Rust vs Python for AI agentic systems')"
+                placeholder="What topic would you like Nidhi to research? (e.g. 'Compare Rust vs Python for AI agentic systems')"
                 required
                 disabled={isLoading}
                 className="flex-1 rounded-xl px-5 py-3 text-sm outline-none transition-all duration-200"

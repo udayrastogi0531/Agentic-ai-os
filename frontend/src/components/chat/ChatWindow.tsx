@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Chat Window Component
+ * Nidhi — Chat Window Component
  *
  * Full-featured chat interface with streaming, markdown, voice mode, and read-aloud support.
  */
@@ -241,7 +241,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
       <header className="sticky top-0 z-30 glass-strong px-6 py-4 flex items-center justify-between border-b border-[var(--border-color)]">
         <div>
           <h2 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
-            💬 Chat with Uday AI
+            💬 Chat with Nidhi
           </h2>
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
             {currentConvId ? "Active Conversation" : "Start a conversation"}
@@ -291,7 +291,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
               🧠
             </div>
             <h2 className="text-2xl font-bold gradient-text mb-2 animate-fade-in">
-              Hey! I&apos;m Uday AI
+              Hey! I&apos;m Nidhi
             </h2>
             <p className="text-center max-w-md text-sm" style={{ color: "var(--text-secondary)" }}>
               Your personal AI operating system. Ask me anything — I can research, code,

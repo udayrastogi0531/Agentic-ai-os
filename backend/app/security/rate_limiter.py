@@ -1,5 +1,5 @@
 """
-Uday AI — Redis-Backed Sliding Window Rate Limiter
+Nidhi — Redis-Backed Sliding Window Rate Limiter
 """
 
 import time

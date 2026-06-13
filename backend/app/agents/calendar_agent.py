@@ -1,5 +1,5 @@
 """
-Uday AI — Calendar Agent
+Nidhi — Calendar Agent
 
 Google Calendar integration for event management.
 Currently uses mock/placeholder - requires Google OAuth setup for real integration.

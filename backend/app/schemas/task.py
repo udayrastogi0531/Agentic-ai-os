@@ -1,5 +1,5 @@
 """
-Uday AI — Task Schemas
+Nidhi — Task Schemas
 """
 
 from __future__ import annotations

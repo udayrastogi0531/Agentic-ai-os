@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Register Page
+ * Nidhi — Register Page
  *
  * Premium glassmorphic registration screen.
  */
@@ -70,7 +70,7 @@ export default function RegisterPage() {
           >
             U
           </div>
-          <h1 className="text-3xl font-extrabold gradient-text">Uday AI</h1>
+          <h1 className="text-3xl font-extrabold gradient-text">Nidhi</h1>
           <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
             Create your Personal AI OS account
           </p>
@@ -117,7 +117,7 @@ export default function RegisterPage() {
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
-              Nickname (How Uday AI addresses you)
+              Nickname (How Nidhi addresses you)
             </label>
             <input
               type="text"

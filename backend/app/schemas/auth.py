@@ -1,5 +1,5 @@
 """
-Uday AI — Auth Schemas
+Nidhi — Auth Schemas
 """
 
 from __future__ import annotations

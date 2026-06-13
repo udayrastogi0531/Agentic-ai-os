@@ -1,5 +1,5 @@
 /**
- * Uday AI — API Client
+ * Nidhi — API Client
  *
  * Centralized HTTP client for all backend API calls.
  */

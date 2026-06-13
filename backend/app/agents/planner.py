@@ -1,5 +1,5 @@
 """
-Uday AI — Planner Agent
+Nidhi — Planner Agent
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ class PlannerOutput(BaseModel):
     reasoning: str = Field(description="Reasoning log behind the execution plan")
 
 
-PLANNER_SYSTEM_PROMPT = """You are the **Planner Agent** for Uday AI, a personal AI Operating System.
+PLANNER_SYSTEM_PROMPT = """You are the **Planner Agent** for Nidhi, a personal AI Operating System.
 Your job is to analyze the user's query and formulate a sequential plan of action.
 
 Available Tools:

@@ -1,5 +1,5 @@
 """
-Uday AI — Text-to-Speech (Piper TTS)
+Nidhi — Text-to-Speech (Piper TTS)
 
 Uses Piper TTS for fast, natural-sounding speech synthesis.
 """

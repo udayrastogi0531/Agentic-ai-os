@@ -1,5 +1,5 @@
 """
-Uday AI — LangGraph Core Graph Wiring
+Nidhi — LangGraph Core Graph Wiring
 """
 
 from __future__ import annotations
@@ -285,6 +285,6 @@ def get_agent_graph():
     if _compiled_graph is None:
         workflow = build_agent_graph()
         _compiled_graph = workflow.compile()
-        logger.info("✅ Uday AI LangGraph agent compiled successfully.")
+        logger.info("✅ Nidhi LangGraph agent compiled successfully.")
     return _compiled_graph
 

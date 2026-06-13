@@ -1,5 +1,5 @@
 """
-Uday AI — Database Configuration
+Nidhi — Database Configuration
 
 Async SQLAlchemy engine, session factory, and ChromaDB client.
 """

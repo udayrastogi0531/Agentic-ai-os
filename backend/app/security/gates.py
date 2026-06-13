@@ -1,5 +1,5 @@
 """
-Uday AI — Security Confirmation Gates
+Nidhi — Security Confirmation Gates
 
 Intercepts sensitive write/delete operations (files, tasks, notes)
 and requires human-in-the-loop approval.

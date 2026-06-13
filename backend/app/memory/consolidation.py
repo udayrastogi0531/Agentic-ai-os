@@ -1,5 +1,5 @@
 """
-Uday AI — Cognitive Memory Consolidation & Knowledge Graph Extraction Engine
+Nidhi — Cognitive Memory Consolidation & Knowledge Graph Extraction Engine
 
 Analyzes episodic conversation logs, consolidates long-term facts,
 resolves contradictions, and extracts entity-relationship structures for the Knowledge Graph.
@@ -57,8 +57,8 @@ class ConsolidationResult(BaseModel):
 
 # ── System Prompt ──────────────────────────────────────────────────────
 
-CONSOLIDATION_SYSTEM_PROMPT = """You are the **Memory Consolidation & Knowledge Graph Extraction Agent** for Uday AI, a personal AI Operating System.
-Your job is to analyze the recent conversation history between the user and Uday AI, compare it with existing long-term user memories, and extract updates.
+CONSOLIDATION_SYSTEM_PROMPT = """You are the **Memory Consolidation & Knowledge Graph Extraction Agent** for Nidhi, a personal AI Operating System.
+Your job is to analyze the recent conversation history between the user and Nidhi, compare it with existing long-term user memories, and extract updates.
 
 Existing User Memories:
 {existing_memories}
@@ -67,7 +67,7 @@ Analyze the recent messages below and identify:
 1. **New Memories**: Long-term personal facts, goals, or preferences (e.g., "User's wife's name is Sarah", "User prefers dark mode UI"). Ignore ephemeral statements like "hello" or transient chat queries.
 2. **Obsolete Memories**: Identify if any of the "Existing User Memories" are now contradicted, changed, or obsolete based on the new messages. Return their exact UUID.
 3. **Knowledge Graph Entities (Nodes)**: Identify entities mentioned (e.g., Projects, Goals, Skills, Relationships).
-4. **Knowledge Graph Links (Edges)**: Identify relationships between these entities (e.g. Project "Uday AI" requires Skill "Python", User knows Relationship "Sarah" (wife)).
+4. **Knowledge Graph Links (Edges)**: Identify relationships between these entities (e.g. Project "Nidhi" requires Skill "Python", User knows Relationship "Sarah" (wife)).
 
 Be highly selective. Only extract facts and entities that have long-term relevance.
 """
@@ -103,7 +103,7 @@ async def consolidate_conversation_memory(
 
     # Format dialogue log
     dialogue_log = "\n".join(
-        f"{'User' if m.role == 'user' else 'Uday AI'}: {m.content}"
+        f"{'User' if m.role == 'user' else 'Nidhi'}: {m.content}"
         for m in messages
     )
 

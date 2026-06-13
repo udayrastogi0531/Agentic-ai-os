@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Login Page
+ * Nidhi — Login Page
  *
  * Premium glassmorphic login screen.
  */
@@ -64,7 +64,7 @@ export default function LoginPage() {
           >
             U
           </div>
-          <h1 className="text-3xl font-extrabold gradient-text">Uday AI</h1>
+          <h1 className="text-3xl font-extrabold gradient-text">Nidhi</h1>
           <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
             Sign in to your Personal AI OS
           </p>

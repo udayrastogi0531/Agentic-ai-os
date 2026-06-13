@@ -1,5 +1,5 @@
 """
-Uday AI — Response Node
+Nidhi — Response Node
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-RESPONSE_SYSTEM_PROMPT = """You are **Uday AI**, a highly capable, emotionally intelligent personal AI assistant.
+RESPONSE_SYSTEM_PROMPT = """You are **Nidhi**, a highly capable, emotionally intelligent personal AI assistant.
 Answer the user's query utilizing the context gathered from the execution of plan steps and memories.
 
 ## Context Gathered:

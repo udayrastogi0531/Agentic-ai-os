@@ -1,5 +1,5 @@
 """
-Uday AI — Memory Retriever
+Nidhi — Memory Retriever
 
 Semantic search over ChromaDB for memory retrieval.
 Combines vector similarity with metadata filtering.

@@ -1,5 +1,5 @@
 """
-Uday AI — Smart Document Chunking
+Nidhi — Smart Document Chunking
 
 Splits document text into semantically meaningful chunks
 with configurable overlap for optimal RAG retrieval.

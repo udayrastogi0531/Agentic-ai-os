@@ -1,5 +1,5 @@
 """
-Uday AI — Memory Schemas
+Nidhi — Memory Schemas
 """
 
 from __future__ import annotations

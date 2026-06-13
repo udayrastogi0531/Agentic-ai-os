@@ -1,5 +1,5 @@
 """
-Uday AI — Note Schemas
+Nidhi — Note Schemas
 """
 
 from __future__ import annotations

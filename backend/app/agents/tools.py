@@ -1,5 +1,5 @@
 """
-Uday AI — Tool Execution Node
+Nidhi — Tool Execution Node
 """
 
 from __future__ import annotations
@@ -138,7 +138,7 @@ class ReplannerOutput(BaseModel):
     plan: list[ReplanStep] = Field(description="New remaining steps to execute")
     reasoning: str = Field(description="Reasoning log behind the re-formulated plan")
 
-REPLANNER_SYSTEM_PROMPT = """You are the **Replanning Agent** for Uday AI, a personal AI Operating System.
+REPLANNER_SYSTEM_PROMPT = """You are the **Replanning Agent** for Nidhi, a personal AI Operating System.
 An error occurred during the execution of step {step_number} in the plan.
 
 Original Query: {query}

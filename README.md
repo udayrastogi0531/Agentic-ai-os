@@ -1,4 +1,4 @@
-# 🧠 Uday AI — Personal AI Operating System
+# 🧠 Nidhi — Personal AI Operating System
 
 <div align="center">
 
@@ -16,7 +16,7 @@
 
 ## 🚀 System Showcase
 
-**Uday AI OS** is a production-grade personal operating system that orchestrates specialized AI agents to solve productivity, engineering, research, and scheduling tasks dynamically. It bridges cloud power (Google Gemini, Groq) with secure local execution (Ollama) through a unified smart model router.
+**Nidhi AI OS** is a production-grade personal operating system that orchestrates specialized AI agents to solve productivity, engineering, research, and scheduling tasks dynamically. It bridges cloud power (Google Gemini, Groq) with secure local execution (Ollama) through a unified smart model router.
 
 ```
                   ┌─────────────────────────────────────────┐
@@ -141,7 +141,7 @@ python -m pytest tests/
 
 ### Verification Logs Output
 ```
-rootdir: D:\Personal AI Assistent(Uday AI)\backend
+rootdir: D:\Personal AI Assistent(Nidhi)\backend
 plugins: anyio-4.13.0, asyncio-0.25.0
 asyncio: mode=Mode.STRICT
 collected 19 items

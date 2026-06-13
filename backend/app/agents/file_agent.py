@@ -1,5 +1,5 @@
 """
-Uday AI — File Agent
+Nidhi — File Agent
 
 File system operations: search, read, create, organize, and delete files.
 Enforces strict path traversal security checks and user workspace partitioning.

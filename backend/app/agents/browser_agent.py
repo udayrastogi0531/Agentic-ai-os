@@ -1,5 +1,5 @@
 """
-Uday AI — Browser Agent (Playwright / Computer Use)
+Nidhi — Browser Agent (Playwright / Computer Use)
 
 Automates web browsing, extracting content, filling forms, clicking elements,
 and downloading files. Uses Playwright with a fallback HTTP scraper.

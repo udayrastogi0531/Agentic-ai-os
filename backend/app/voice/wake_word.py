@@ -1,5 +1,5 @@
 """
-Uday AI — Wake Word Detection
+Nidhi — Wake Word Detection
 
 Detects "Hey Uday" wake word using openwakeword.
 """

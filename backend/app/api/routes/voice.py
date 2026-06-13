@@ -1,5 +1,5 @@
 """
-Uday AI — Voice Routes
+Nidhi — Voice Routes
 
 Endpoints for:
 - Speech-to-Text (Whisper STT)

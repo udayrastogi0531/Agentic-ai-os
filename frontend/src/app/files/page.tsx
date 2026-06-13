@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Files & RAG Document Page
+ * Nidhi — Files & RAG Document Page
  *
  * Premium interface for document upload, management, and interactive Q&A.
  */
@@ -319,7 +319,7 @@ export default function FilesPage() {
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Ask Uday AI..."
+                    placeholder="Ask Nidhi..."
                     disabled={isQuerying}
                     className="flex-1 rounded-xl px-4 py-2.5 text-sm outline-none"
                     style={{

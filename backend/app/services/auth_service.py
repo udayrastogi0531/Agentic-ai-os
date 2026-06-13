@@ -1,5 +1,5 @@
 """
-Uday AI — Authentication Service
+Nidhi — Authentication Service
 
 Handles password hashing, JWT token creation/validation,
 and user registration/login logic.

@@ -1,5 +1,5 @@
 """
-Uday AI — File Routes (RAG)
+Nidhi — File Routes (RAG)
 
 Upload, list, delete, and query documents.
 """

@@ -1,5 +1,5 @@
 """
-Uday AI — Smart Model Router
+Nidhi — Smart Model Router
 
 Classifies user queries based on complexity, checks model health,
 and routes to the optimal LLM provider (Ollama, OpenAI, Gemini, Groq)

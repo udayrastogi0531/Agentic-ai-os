@@ -1,5 +1,5 @@
 """
-Uday AI — Auth Routes
+Nidhi — Auth Routes
 
 Endpoints: register, login, me, update profile.
 """

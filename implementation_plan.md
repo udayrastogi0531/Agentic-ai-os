@@ -1,8 +1,8 @@
-# Uday AI — Personal AI Operating System
+# Nidhi — Personal AI Operating System
 
 ## Overview
 
-**Uday AI** is a production-grade Personal AI Operating System that combines conversational AI, long-term memory, multi-agent orchestration, RAG, voice interaction, and productivity integrations (Gmail, Calendar, Notes, Tasks, Files) into a single cohesive platform.
+**Nidhi** is a production-grade Personal AI Operating System that combines conversational AI, long-term memory, multi-agent orchestration, RAG, voice interaction, and productivity integrations (Gmail, Calendar, Notes, Tasks, Files) into a single cohesive platform.
 
 ---
 
@@ -103,7 +103,7 @@ graph TB
 ## Folder Structure
 
 ```
-d:\Personal AI Assistent(Uday AI)\
+d:\Personal AI Assistent(Nidhi)\
 ├── frontend/                      # Next.js 15 App
 │   ├── app/                       # App Router
 │   │   ├── (auth)/                # Auth routes

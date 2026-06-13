@@ -1,5 +1,5 @@
 """
-Uday AI — Embedding Utilities
+Nidhi — Embedding Utilities
 
 Generates embeddings using sentence-transformers for semantic search.
 Uses a singleton model instance for performance.

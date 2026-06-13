@@ -1,5 +1,5 @@
 /**
- * Uday AI — WebSocket Client
+ * Nidhi — WebSocket Client
  *
  * Real-time streaming chat connection with auto-reconnect.
  */

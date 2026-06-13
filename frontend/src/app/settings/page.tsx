@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Uday AI — Settings Page
+ * Nidhi — Settings Page
  *
  * Full-featured profile and preferences editor with integrations toggling.
  */
@@ -194,7 +194,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Google Calendar Connection</span>
-                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>Allows Uday AI to check and plan your calendar meetings</span>
+                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>Allows Nidhi to check and plan your calendar meetings</span>
                 </div>
                 <button
                   type="button"
@@ -213,7 +213,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-4">
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Gmail Connection</span>
-                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>Allows Uday AI to draft, fetch, and send emails for you</span>
+                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>Allows Nidhi to draft, fetch, and send emails for you</span>
                 </div>
                 <button
                   type="button"
@@ -232,7 +232,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-4">
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>GitHub Connection</span>
-                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>Allows Uday AI to inspect repos and manage issue PRs</span>
+                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>Allows Nidhi to inspect repos and manage issue PRs</span>
                 </div>
                 <button
                   type="button"

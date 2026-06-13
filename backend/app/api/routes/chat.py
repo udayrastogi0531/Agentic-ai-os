@@ -1,5 +1,5 @@
 """
-Uday AI — Chat Routes
+Nidhi — Chat Routes
 
 REST endpoints for conversations and messages.
 Streaming is handled separately via WebSocket.

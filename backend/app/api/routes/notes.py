@@ -1,5 +1,5 @@
 """
-Uday AI — Note Routes
+Nidhi — Note Routes
 """
 
 from __future__ import annotations

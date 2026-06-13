@@ -1,5 +1,5 @@
 """
-Uday AI — Memory Manager
+Nidhi — Memory Manager
 
 High-level memory lifecycle management:
 - Create memories (auto-categorize + embed)

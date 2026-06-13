@@ -1,5 +1,5 @@
 """
-Uday AI — Knowledge Graph Operations Service
+Nidhi — Knowledge Graph Operations Service
 """
 
 from __future__ import annotations

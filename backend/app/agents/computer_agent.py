@@ -1,5 +1,5 @@
 """
-Uday AI — Computer Use & Desktop Automation Agent
+Nidhi — Computer Use & Desktop Automation Agent
 
 Handles opening applications, opening files/folders, and browser-based WhatsApp automation.
 """
@@ -32,7 +32,7 @@ class ComputerAction(BaseModel):
     )
 
 
-COMPUTER_SYSTEM_PROMPT = """You are the **Computer Use Agent** for Uday AI, a personal AI Operating System.
+COMPUTER_SYSTEM_PROMPT = """You are the **Computer Use Agent** for Nidhi, a personal AI Operating System.
 Your job is to analyze the user's desktop/browser action command and classify it into a structured format.
 
 Actions available:

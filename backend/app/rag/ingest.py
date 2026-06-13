@@ -1,5 +1,5 @@
 """
-Uday AI — Document Ingestion
+Nidhi — Document Ingestion
 
 Handles uploading and processing of PDF, DOCX, TXT, and image files.
 Extracts text and prepares for chunking and embedding.

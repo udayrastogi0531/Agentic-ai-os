@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan — startup and shutdown logic."""
-    logger.info("🚀 Starting Uday AI Backend...")
+    logger.info("🚀 Starting Nidhi Backend...")
     logger.info(f"   Environment: {settings.app_env}")
     logger.info(f"   Debug: {settings.debug}")
     logger.info(f"   LLM Provider: {settings.default_llm_provider}")
