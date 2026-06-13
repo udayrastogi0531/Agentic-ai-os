@@ -16,7 +16,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db
+from app.database import get_db_session
+from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.job import Job, JobApplication
 from app.models.user_profile import UserProfile
@@ -156,7 +157,7 @@ async def get_user_profile_dict(db: AsyncSession, user_id: uuid.UUID, user: User
 
 @router.get("")
 async def list_jobs(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """List all saved jobs for current user."""
@@ -177,7 +178,7 @@ async def list_jobs(
 @router.post("/search")
 async def search_jobs(
     request: JobSearchRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Search for jobs using Brave Search."""
@@ -223,7 +224,7 @@ async def analyze_job_description(
 @router.post("/match")
 async def match_resume_to_job(
     request: ResumeMatchRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Match user's resume against a job description."""
@@ -247,7 +248,7 @@ async def match_resume_to_job(
 @router.post("/save")
 async def save_job(
     request: JobSaveRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Save a job listing."""
@@ -260,7 +261,7 @@ async def save_job(
 @router.post("/{job_id}/cover-letter")
 async def generate_cover_letter(
     job_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Generate a cover letter for a saved job."""
@@ -287,7 +288,7 @@ async def generate_cover_letter(
 async def update_application_status(
     job_id: uuid.UUID,
     data: ApplicationStatusUpdate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Update job application status (pipeline stage)."""
@@ -316,7 +317,7 @@ async def update_application_status(
 @router.delete("/{job_id}")
 async def delete_job(
     job_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Remove a saved job."""

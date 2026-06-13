@@ -193,8 +193,21 @@ async def test_voice_stt_tts_fallback(mock_get_whisper):
     transcription = await transcribe_audio(b"fake_audio_bytes")
     assert "Hello Uday" in transcription
     
-    audio = await synthesize_speech("Hello Uday!")
-    assert audio is None  # Fails back to None if piper is missing locally
+    # 1. Test Edge TTS Success Path
+    async def mock_stream():
+        yield {"type": "audio", "data": b"mock_edge_tts_audio"}
+
+    mock_communicate = MagicMock()
+    mock_communicate.stream = mock_stream
+
+    with patch("edge_tts.Communicate", return_value=mock_communicate):
+        audio = await synthesize_speech("Hello Uday!")
+        assert audio == b"mock_edge_tts_audio"
+
+    # 2. Test Fallback Path (Edge TTS fails -> Piper is missing -> returns None)
+    with patch("edge_tts.Communicate", side_effect=Exception("Edge TTS failed")):
+        audio_fallback = await synthesize_speech("Hello Uday!")
+        assert audio_fallback is None
 
 
 # ── 10. Knowledge Graph Retrieval Test ────────────────────────────────

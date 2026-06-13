@@ -15,7 +15,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db
+from app.database import get_db_session
+from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.user_profile import UserProfile
 from app.agents import resume_agent
@@ -102,7 +103,7 @@ def profile_to_agent_dict(profile: UserProfile | None, user: User) -> dict:
 @router.post("/analyze")
 async def analyze_resume(
     request: ResumeAnalyzeRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -136,7 +137,7 @@ async def analyze_resume(
 @router.post("/improve")
 async def improve_resume(
     request: ResumeImproveRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -168,7 +169,7 @@ async def improve_resume(
 
 @router.post("/generate")
 async def generate_ats_resume(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -192,7 +193,7 @@ async def generate_ats_resume(
 @router.post("/cover-letter")
 async def generate_cover_letter(
     request: CoverLetterRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Generate a personalized cover letter for a job."""
@@ -218,7 +219,7 @@ async def generate_cover_letter(
 @router.post("/linkedin")
 async def generate_linkedin_summary(
     request: LinkedInRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Generate a LinkedIn About section."""
@@ -238,7 +239,7 @@ async def generate_linkedin_summary(
 @router.post("/portfolio")
 async def generate_portfolio_content(
     request: PortfolioRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Generate polished portfolio content for projects."""
@@ -263,7 +264,7 @@ async def generate_portfolio_content(
 
 @router.get("/ats-score")
 async def get_ats_score(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ):
     """Get the last computed ATS score for the stored resume."""

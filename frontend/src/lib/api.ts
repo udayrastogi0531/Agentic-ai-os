@@ -317,7 +317,7 @@ class ApiClient {
     return this.request("POST", "/profile/resume", { resume_text: resumeText, resume_url: resumeUrl });
   }
 
-  // ── Jobs ─────────────────────────────────────────────────────────────
+  // ── Jobs ────────────────────────────────────────────────────────────
 
   async getJobs(): Promise<any> {
     return this.request("GET", "/jobs");
@@ -379,6 +379,59 @@ class ApiClient {
 
   async getATSScore(): Promise<any> {
     return this.request("GET", "/resume/ats-score");
+  }
+
+  // ── Briefing ────────────────────────────────────────────────────────
+  async getBriefing(): Promise<any> {
+    return this.request("GET", "/briefing");
+  }
+
+  // ── Goals ───────────────────────────────────────────────────────────
+  async getGoals(): Promise<any> {
+    return this.request("GET", "/goals");
+  }
+
+  async createGoal(data: Record<string, any>): Promise<any> {
+    return this.request("POST", "/goals", data);
+  }
+
+  async updateGoal(id: string, data: Record<string, any>): Promise<any> {
+    return this.request("PUT", `/goals/${id}`, data);
+  }
+
+  async deleteGoal(id: string): Promise<any> {
+    return this.request("DELETE", `/goals/${id}`);
+  }
+
+  async evaluateGoal(id: string): Promise<any> {
+    return this.request("POST", `/goals/${id}/evaluate`);
+  }
+
+  // ── Career Coach ────────────────────────────────────────────────────
+  async getRoadmap(): Promise<any> {
+    return this.request("GET", "/career/roadmap");
+  }
+
+  async sendCareerChat(data: { message: string }): Promise<any> {
+    return this.request("POST", "/career/chat", data);
+  }
+
+  // ── Interview Coach ─────────────────────────────────────────────────
+  async getInterviewQuestions(data: { role: string; topic: string; difficulty: string }): Promise<any> {
+    return this.request("POST", "/interview/questions", data);
+  }
+
+  async evaluateInterviewAnswer(data: { question: string; answer: string }): Promise<any> {
+    return this.request("POST", "/interview/evaluate", data);
+  }
+
+  // ── Freelancing Assistant ───────────────────────────────────────────
+  async getFreelanceGigs(): Promise<any> {
+    return this.request("GET", "/freelance/search");
+  }
+
+  async generateFreelanceProposal(data: { title: string; platform: string; description: string; budget: string }): Promise<any> {
+    return this.request("POST", "/freelance/proposal", data);
   }
 }
 

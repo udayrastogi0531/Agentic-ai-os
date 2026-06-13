@@ -25,6 +25,11 @@ const NAV_ITEMS = [
   { name: "Jobs",       href: "/jobs",       icon: "💼",  emoji: "💼" },
   { name: "Resume",     href: "/resume",     icon: "📄",  emoji: "📄" },
   { name: "Profile",    href: "/profile",    icon: "👤",  emoji: "👤" },
+  { name: "Briefing",   href: "/briefing",   icon: "☕",  emoji: "☕" },
+  { name: "Goals",      href: "/goals",      icon: "🎯",  emoji: "🎯" },
+  { name: "Career",     href: "/career",     icon: "🚀",  emoji: "🚀" },
+  { name: "Interview",  href: "/interview",  icon: "🎙️",  emoji: "🎙️" },
+  { name: "Freelance",  href: "/freelance",  icon: "💻",  emoji: "💻" },
 ];
 
 const BOTTOM_ITEMS = [

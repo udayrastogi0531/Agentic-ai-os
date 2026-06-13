@@ -26,6 +26,26 @@ async def synthesize_speech(text: str) -> bytes | None:
     Returns:
         Audio bytes (WAV format) or None if TTS unavailable.
     """
+    # ── Priority 1: Edge TTS ──────────────────────────────────────────────
+    try:
+        import edge_tts
+        import io
+
+        # Use Neerja (Indian English Female voice)
+        communicate = edge_tts.Communicate(text, "en-IN-NeerjaNeural")
+        audio_stream = io.BytesIO()
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio_stream.write(chunk["data"])
+
+        audio_bytes = audio_stream.getvalue()
+        if audio_bytes:
+            logger.info(f"Edge TTS: Generated {len(audio_bytes)} bytes of audio.")
+            return audio_bytes
+    except Exception as e:
+        logger.warning(f"Edge TTS failed: {e}. Falling back to Piper.")
+
+    # ── Priority 2: Piper TTS ──────────────────────────────────────────────
     try:
         import subprocess
 
