@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * Uday AI — Memory Bank Page
+ * Nidhi AI OS — Memory Bank
  *
- * Full management interface for viewing, search, creation, and deletion of memories.
+ * What Nidhi knows about you. Profile memories grouped by category.
  */
 
 import { useState, useEffect } from "react";
@@ -97,20 +97,21 @@ export default function MemoryPage() {
   };
 
   return (
+    <>
+      <div className="aurora-bg" aria-hidden />
     <div className="flex min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <Sidebar />
-      <main className="flex-1" style={{ marginLeft: "var(--sidebar-width)" }}>
-        <header className="sticky top-0 z-30 glass-strong px-8 py-5 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border-color)" }}>
+      <main className="flex-1 relative" style={{ marginLeft: "var(--sidebar-width)", zIndex: 1 }}>
+        <header className="sticky top-0 z-30 glass-strong px-8 py-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(124, 107, 255, 0.1)" }}>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>🧠 Memory Bank</h1>
-            <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>Everything I remember about you</p>
+            <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)", fontFamily: "var(--font-display)" }}>🧠 My Memory</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>What Nidhi knows about you — her long-term memory</p>
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white transition-all duration-200 hover:scale-105"
-            style={{ background: "var(--gradient-primary)" }}
+            className="btn-nidhi"
           >
-            ➕ Add Memory
+            ✦ Teach Nidhi
           </button>
         </header>
 
@@ -284,5 +285,6 @@ export default function MemoryPage() {
         </div>
       </main>
     </div>
+    </>
   );
 }

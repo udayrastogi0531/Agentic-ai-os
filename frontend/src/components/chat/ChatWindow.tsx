@@ -425,7 +425,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Message Uday AI..."
+            placeholder="Message Nidhi…"
             rows={1}
             className="flex-1 bg-transparent text-sm resize-none outline-none"
             style={{
@@ -473,7 +473,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
           </div>
         </div>
         <p className="text-xs text-center mt-2" style={{ color: "var(--text-muted)" }}>
-          Uday AI can make mistakes. Always verify important information.
+          Nidhi can make mistakes. Always verify important information. 💜
         </p>
       </div>
 
