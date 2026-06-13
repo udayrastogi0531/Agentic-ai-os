@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Link from "next/link";
+import api from "@/lib/api";
 
 type OrbState = "idle" | "listening" | "thinking" | "speaking";
 
@@ -79,6 +80,7 @@ export default function VoicePage() {
   const transcriptRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const orbStateRef = useRef<OrbState>("idle");
 
   // Check Web Speech API support
@@ -87,6 +89,12 @@ export default function VoicePage() {
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
     setIsSupported(!!SpeechRecognition);
+    return () => {
+      if (audioRef.current) audioRef.current.pause();
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
   }, []);
 
   // Keep ref in sync with state
@@ -109,24 +117,40 @@ export default function VoicePage() {
     ]);
   };
 
-  const speakNidhi = useCallback((text: string) => {
+  const speakNidhi = useCallback(async (text: string) => {
     setOrbStateSynced("speaking");
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      // Prefer a female English-India voice
-      const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(
-        (v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")
-      ) || voices.find((v) => v.lang.startsWith("en")) || voices[0];
-      if (preferred) utterance.voice = preferred;
-      utterance.rate = 0.95;
-      utterance.pitch = 1.1;
-      utterance.onend = () => setOrbStateSynced("idle");
-      synthRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
-    } else {
-      setTimeout(() => setOrbStateSynced("idle"), 2500);
+    try {
+      // Priority 1 & 2: Edge TTS / Piper TTS from Backend API
+      const audioBlob = await api.synthesizeSpeech(text);
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onended = () => setOrbStateSynced("idle");
+      await audio.play();
+    } catch (err) {
+      console.warn("Backend TTS synthesis failed, running browser fallback SpeechSynthesis", err);
+      // Priority 3: Browser Speech API Fallback
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find(
+          (v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")
+        ) || voices.find((v) => v.lang.startsWith("en")) || voices[0];
+        if (preferred) utterance.voice = preferred;
+        utterance.rate = 0.95;
+        utterance.pitch = 1.1;
+        utterance.onend = () => setOrbStateSynced("idle");
+        synthRef.current = utterance;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setTimeout(() => setOrbStateSynced("idle"), 2500);
+      }
     }
   }, []);
 

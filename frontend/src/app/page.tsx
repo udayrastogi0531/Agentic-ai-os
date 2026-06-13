@@ -1,28 +1,36 @@
 "use client";
 
-/**
- * Nidhi AI OS — Companion Home Page
- *
- * An emotional, minimal companion home. No stats. No counters.
- * Just Nidhi, ready to help Uday.
- */
-
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import CommandBar from "@/components/CommandBar";
 import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
 import api from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Sparkles,
+  Play,
+  Square,
+  Brain,
+  Calendar,
+  Mail,
+  MessageSquare,
+  FileText,
+  ChevronRight,
+  Clock,
+  Briefcase,
+  Globe,
+  Settings
+} from "lucide-react";
 
-/* ── Greeting helpers ─────────────────────── */
 function getGreeting(name: string): { text: string; emoji: string } {
   const hour = new Date().getHours();
   const first = name?.split(" ")[0] || "Uday";
-  if (hour < 5)  return { text: `Still up, ${first}?`, emoji: "🌙" };
-  if (hour < 12) return { text: `Good morning, ${first}`, emoji: "🌅" };
-  if (hour < 17) return { text: `Good afternoon, ${first}`, emoji: "☀️" };
-  if (hour < 21) return { text: `Good evening, ${first}`, emoji: "🌆" };
-  return { text: `Good night, ${first}`, emoji: "🌙" };
+  if (hour < 5)  return { text: `Still working, ${first}?`, emoji: "🌙" };
+  if (hour < 12) return { text: `Good morning, ${first} ❤️`, emoji: "🌅" };
+  if (hour < 17) return { text: `Good afternoon, ${first} ❤️`, emoji: "☀️" };
+  if (hour < 21) return { text: `Good evening, ${first} ❤️`, emoji: "🌆" };
+  return { text: `Good night, ${first} ❤️`, emoji: "🌙" };
 }
 
 function getNidhiMessage(): string {
@@ -36,101 +44,64 @@ function getNidhiMessage(): string {
   return messages[Math.floor(Math.random() * messages.length)];
 }
 
-/* ── Quick Action config ────────────────── */
 const QUICK_ACTIONS = [
-  {
-    id: "chat",
-    icon: "💬",
-    label: "Chat with Nidhi",
-    sub: "Start a conversation",
-    href: "/chat",
-    gradient: "linear-gradient(135deg, #7c6bff, #a855f7)",
-    glow: "rgba(124, 107, 255, 0.3)",
-  },
-  {
-    id: "voice",
-    icon: "🎙️",
-    label: "Voice Mode",
-    sub: "Talk to Nidhi",
-    href: "/voice",
-    gradient: "linear-gradient(135deg, #a855f7, #e879f9)",
-    glow: "rgba(232, 121, 249, 0.3)",
-  },
-  {
-    id: "research",
-    icon: "🔍",
-    label: "Research",
-    sub: "Deep web search",
-    href: "/research",
-    gradient: "linear-gradient(135deg, #3b82f6, #6366f1)",
-    glow: "rgba(59, 130, 246, 0.3)",
-  },
-  {
-    id: "tasks",
-    icon: "✅",
-    label: "My Tasks",
-    sub: "What's on today",
-    href: "/tasks",
-    gradient: "linear-gradient(135deg, #10b981, #22d3a8)",
-    glow: "rgba(16, 185, 129, 0.3)",
-  },
-  {
-    id: "memory",
-    icon: "🧠",
-    label: "My Memory",
-    sub: "What Nidhi knows",
-    href: "/memory",
-    gradient: "linear-gradient(135deg, #f59e0b, #ef4444)",
-    glow: "rgba(245, 158, 11, 0.3)",
-  },
-  {
-    id: "knowledge",
-    icon: "📚",
-    label: "Knowledge Base",
-    sub: "Documents & RAG",
-    href: "/files",
-    gradient: "linear-gradient(135deg, #ec4899, #a855f7)",
-    glow: "rgba(236, 72, 153, 0.3)",
-  },
-];
-
-/* ── Suggested prompts ─────────────────── */
-const SUGGESTED_PROMPTS = [
-  "Meri aaj ki meetings kya hain?",
-  "Latest AI news summarize karo",
-  "Ek Python script likh do file sorting ke liye",
-  "Mujhe motivate karo aaj ke liye",
-  "WhatsApp pe Rahul ko message karo",
-  "Mera week plan banao",
+  { id: "chat", icon: <MessageSquare className="w-5 h-5 text-purple-400" />, label: "Smart Chat", sub: "Hinglish chat session", href: "/chat" },
+  { id: "voice", icon: <Sparkles className="w-5 h-5 text-pink-400" />, label: "Voice Mode", sub: "Talk to Nidhi", href: "/voice" },
+  { id: "files", icon: <FileText className="w-5 h-5 text-blue-400" />, label: "File Chat", sub: "PDF & RAG parsing", href: "/files" },
+  { id: "research", icon: <Globe className="w-5 h-5 text-emerald-400" />, label: "Research Agent", sub: "Deep web research", href: "/research" },
+  { id: "career", icon: <Briefcase className="w-5 h-5 text-yellow-400" />, label: "Career Coach", sub: "Skill maps & advice", href: "/career" },
+  { id: "gmail", icon: <Mail className="w-5 h-5 text-rose-400" />, label: "Gmail Summary", sub: "Email assistant", href: "/gmail" },
+  { id: "calendar", icon: <Calendar className="w-5 h-5 text-cyan-400" />, label: "My Schedule", sub: "View today's plan", href: "/calendar" },
 ];
 
 export default function NidhiHomePage() {
   const { user } = useAuth();
   const [nidhiMsg] = useState(getNidhiMessage);
-  const [tasks, setTasks]           = useState<any[]>([]);
-  const [recentChats, setRecentChats] = useState<any[]>([]);
-  const [cmdOpen, setCmdOpen]       = useState(false);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [memories, setMemories] = useState<any[]>([]);
+  const [briefing, setBriefing] = useState<string>("");
+  const [loadingBriefing, setLoadingBriefing] = useState<boolean>(true);
+  const [isPlayingBrief, setIsPlayingBrief] = useState<boolean>(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Update clock
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Time & Date Updates
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(t);
   }, []);
 
-  // Load tasks + recent chats
+  // Fetch Home Widgets Data
   useEffect(() => {
     if (!user) return;
+    
+    // Load tasks
     api.getTasks().then((r: any) => {
-      if (r?.items) setTasks(r.items.slice(0, 5));
+      if (r?.items) setTasks(r.items.slice(0, 4));
     }).catch(() => {});
-    api.getConversations().then((r: any) => {
-      if (Array.isArray(r)) setRecentChats(r.slice(0, 3));
+
+    // Load recent memories
+    api.getMemories().then((r: any) => {
+      if (r?.items) {
+        setMemories(r.items.slice(0, 4));
+      } else if (Array.isArray(r)) {
+        setMemories(r.slice(0, 4));
+      }
     }).catch(() => {});
+
+    // Load briefing
+    api.getBriefing().then((r: any) => {
+      if (r?.brief) setBriefing(r.brief);
+      setLoadingBriefing(false);
+    }).catch(() => {
+      setBriefing("Namaste Uday! Let's tackle today's projects and learnings. Main help ke liye ready hoon.");
+      setLoadingBriefing(false);
+    });
   }, [user]);
 
-  // CMD+K listener
+  // Command+K listener
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
@@ -142,6 +113,59 @@ export default function NidhiHomePage() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  // Audio briefing controls
+  const handlePlayBriefing = async () => {
+    if (!briefing || isPlayingBrief) return;
+    setIsPlayingBrief(true);
+
+    const speakableText = briefing
+      .replace(/[#*`_\-]/g, "")
+      .replace(/☕|🌸|😊|📝|💼|🎯|✅|❤️/g, "")
+      .trim();
+
+    try {
+      const audioBlob = await api.synthesizeSpeech(speakableText);
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onended = () => setIsPlayingBrief(false);
+      await audio.play();
+    } catch (err) {
+      console.warn("Backend TTS synthesis failed, running browser fallback SpeechSynthesis", err);
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(speakableText);
+        const voices = window.speechSynthesis.getVoices();
+        const preferred =
+          voices.find((v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")) ||
+          voices.find((v) => v.lang.startsWith("en")) ||
+          voices[0];
+        if (preferred) utterance.voice = preferred;
+        utterance.rate = 0.95;
+        utterance.pitch = 1.1;
+        utterance.onend = () => setIsPlayingBrief(false);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setIsPlayingBrief(false);
+      }
+    }
+  };
+
+  const handleStopBriefing = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsPlayingBrief(false);
+  };
 
   const greeting = getGreeting(user?.name || "Uday");
 
@@ -159,9 +183,8 @@ export default function NidhiHomePage() {
 
   return (
     <>
-      {/* Aurora background */}
       <div className="aurora-bg" aria-hidden />
-
+      
       <div className="flex min-h-screen" style={{ background: "var(--bg-primary)" }}>
         <Sidebar />
 
@@ -169,399 +192,214 @@ export default function NidhiHomePage() {
           className="flex-1 overflow-y-auto relative"
           style={{ marginLeft: "var(--sidebar-width)", zIndex: 1 }}
         >
-          <div className="max-w-4xl mx-auto px-6 py-10 space-y-10">
-
-            {/* ── Hero Greeting ───────────────────── */}
-            <section className="animate-fade-in" style={{ animationDelay: "0ms" }}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  {/* Time badge */}
-                  <div
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs mb-4"
-                    style={{
-                      background: "rgba(124, 107, 255, 0.08)",
-                      border: "1px solid rgba(124, 107, 255, 0.15)",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: "var(--success)", boxShadow: "0 0 6px var(--success)" }}
-                    />
-                    {formattedDate} · {formattedTime}
-                  </div>
-
-                  {/* Main greeting */}
-                  <h1
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "clamp(2rem, 5vw, 3rem)",
-                      fontWeight: 800,
-                      lineHeight: 1.1,
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    {greeting.emoji} {greeting.text}
-                  </h1>
-
-                  {/* Nidhi message */}
-                  <p
-                    className="mt-3 text-lg"
-                    style={{
-                      color: "var(--text-secondary)",
-                      fontFamily: "var(--font-display)",
-                    }}
-                  >
-                    {nidhiMsg}
-                  </p>
-                </div>
-
-                {/* Mini Nidhi orb */}
-                <div className="flex-shrink-0 hidden md:flex">
-                  <Link href="/voice" aria-label="Voice Mode">
-                    <div
-                      className="relative w-16 h-16 rounded-full cursor-pointer"
-                      style={{
-                        background: "linear-gradient(135deg, #7c6bff, #a855f7, #e879f9)",
-                        boxShadow: "0 0 30px rgba(124, 107, 255, 0.5), 0 0 60px rgba(124, 107, 255, 0.2)",
-                        animation: "breathe 4s ease-in-out infinite",
-                      }}
-                    >
-                      <div
-                        className="absolute inset-0 rounded-full flex items-center justify-center"
-                        style={{ fontSize: "1.75rem" }}
-                      >
-                        ✦
-                      </div>
-                      {/* Ripple rings */}
-                      {[0, 1, 2].map((i) => (
-                        <span
-                          key={i}
-                          className="absolute inset-0 rounded-full"
-                          style={{
-                            border: "1px solid rgba(124, 107, 255, 0.25)",
-                            animation: `ripple 3s ease-out infinite`,
-                            animationDelay: `${i}s`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Quick ask bar */}
-              <div
-                className="mt-6 flex items-center gap-3 rounded-2xl px-5 py-4 cursor-text"
-                style={{
-                  background: "rgba(124, 107, 255, 0.06)",
-                  border: "1px solid rgba(124, 107, 255, 0.15)",
-                  backdropFilter: "blur(20px)",
-                }}
-                onClick={() => setCmdOpen(true)}
-              >
-                <span style={{ color: "var(--accent-primary)", fontSize: "1.1rem" }}>✦</span>
-                <span style={{ color: "var(--text-muted)", fontSize: "0.9375rem" }}>
-                  Ask Nidhi anything… or press{" "}
-                  <span className="kbd">Ctrl</span>{" "}
-                  <span className="kbd">K</span>
+          <div className="max-w-6xl mx-auto px-8 py-10 space-y-8">
+            
+            {/* Header / Top Panel */}
+            <div className="flex items-center justify-between border-b border-purple-500/10 pb-6">
+              <div>
+                <span className="text-xs uppercase tracking-wider text-purple-400 font-semibold">
+                  Personal AI OS
                 </span>
+                <h1 className="text-3xl font-extrabold tracking-tight mt-1 text-white font-display">
+                  Nidhi AI
+                </h1>
               </div>
-            </section>
-
-            {/* ── Quick Actions ────────────────────── */}
-            <section className="animate-fade-in" style={{ animationDelay: "100ms" }}>
-              <h2
-                className="text-sm font-semibold uppercase tracking-widest mb-4"
-                style={{ color: "var(--text-muted)" }}
-              >
-                What would you like to do?
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {QUICK_ACTIONS.map((action, idx) => (
-                  <Link
-                    key={action.id}
-                    href={action.href}
-                    className="group relative rounded-2xl p-5 flex flex-col gap-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer overflow-hidden"
-                    style={{
-                      background: "rgba(17, 17, 40, 0.8)",
-                      border: "1px solid rgba(124, 107, 255, 0.1)",
-                      backdropFilter: "blur(16px)",
-                      animationDelay: `${idx * 60}ms`,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "rgba(124, 107, 255, 0.35)";
-                      e.currentTarget.style.boxShadow = `0 0 24px ${action.glow}`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "rgba(124, 107, 255, 0.1)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  >
-                    {/* Gradient shimmer bg on hover */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      style={{ background: `linear-gradient(135deg, ${action.glow}30, transparent)` }}
-                    />
-
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-xl relative z-10"
-                      style={{ background: action.gradient, boxShadow: `0 4px 12px ${action.glow}` }}
-                    >
-                      {action.icon}
-                    </div>
-                    <div className="relative z-10">
-                      <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                        {action.label}
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                        {action.sub}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-
-            {/* ── Suggested Prompts ────────────────── */}
-            <section className="animate-fade-in" style={{ animationDelay: "200ms" }}>
-              <h2
-                className="text-sm font-semibold uppercase tracking-widest mb-4"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Suggested for you
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {SUGGESTED_PROMPTS.map((prompt) => (
-                  <Link
-                    key={prompt}
-                    href={`/chat?q=${encodeURIComponent(prompt)}`}
-                    className="px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105 cursor-pointer"
-                    style={{
-                      background: "rgba(124, 107, 255, 0.07)",
-                      border: "1px solid rgba(124, 107, 255, 0.15)",
-                      color: "var(--text-secondary)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(124, 107, 255, 0.15)";
-                      e.currentTarget.style.color = "var(--text-primary)";
-                      e.currentTarget.style.borderColor = "rgba(124, 107, 255, 0.35)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "rgba(124, 107, 255, 0.07)";
-                      e.currentTarget.style.color = "var(--text-secondary)";
-                      e.currentTarget.style.borderColor = "rgba(124, 107, 255, 0.15)";
-                    }}
-                  >
-                    {prompt}
-                  </Link>
-                ))}
-              </div>
-            </section>
-
-            {/* ── Two-column: Tasks & Recent Chats ── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-fade-in" style={{ animationDelay: "300ms" }}>
-
-              {/* Tasks */}
-              <div
-                className="rounded-2xl p-5"
-                style={{
-                  background: "rgba(17, 17, 40, 0.8)",
-                  border: "1px solid rgba(124, 107, 255, 0.1)",
-                }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-                    📋 Today's Focus
-                  </h3>
-                  <Link
-                    href="/tasks"
-                    className="text-xs transition-colors"
-                    style={{ color: "var(--accent-tertiary)" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "var(--accent-tertiary)"; }}
-                  >
-                    View all →
-                  </Link>
-                </div>
-                {tasks.length > 0 ? (
-                  <ul className="space-y-2">
-                    {tasks.map((task: any, i: number) => (
-                      <li
-                        key={task.id || i}
-                        className="flex items-center gap-3 py-2 px-3 rounded-xl transition-all"
-                        style={{ background: "rgba(124, 107, 255, 0.04)" }}
-                      >
-                        <span
-                          className="w-4 h-4 rounded-full border-2 flex-shrink-0"
-                          style={{
-                            borderColor: task.completed ? "var(--success)" : "var(--border-color)",
-                            background: task.completed ? "var(--success)" : "transparent",
-                          }}
-                        />
-                        <span
-                          className="text-sm flex-1 truncate"
-                          style={{
-                            color: task.completed ? "var(--text-muted)" : "var(--text-secondary)",
-                            textDecoration: task.completed ? "line-through" : "none",
-                          }}
-                        >
-                          {task.title || task.text}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="flex flex-col items-center py-6 gap-2">
-                    <span className="text-3xl">✨</span>
-                    <p className="text-sm text-center" style={{ color: "var(--text-muted)" }}>
-                      Koi pending task nahi!<br />Sab clear hai, Uday.
-                    </p>
-                    <Link href="/tasks" className="btn-nidhi text-xs mt-1 py-1.5 px-4">
-                      Add Task
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              {/* Recent Chats */}
-              <div
-                className="rounded-2xl p-5"
-                style={{
-                  background: "rgba(17, 17, 40, 0.8)",
-                  border: "1px solid rgba(124, 107, 255, 0.1)",
-                }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-                    💬 Recent Conversations
-                  </h3>
-                  <Link
-                    href="/chat"
-                    className="text-xs transition-colors"
-                    style={{ color: "var(--accent-tertiary)" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "var(--accent-tertiary)"; }}
-                  >
-                    All chats →
-                  </Link>
-                </div>
-                {recentChats.length > 0 ? (
-                  <ul className="space-y-2">
-                    {recentChats.map((chat: any, i: number) => (
-                      <li key={chat.id || i}>
-                        <Link
-                          href={`/chat?id=${chat.id}`}
-                          className="flex items-start gap-3 py-2.5 px-3 rounded-xl transition-all group"
-                          style={{ background: "rgba(124, 107, 255, 0.04)" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(124, 107, 255, 0.08)"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(124, 107, 255, 0.04)"; }}
-                        >
-                          <span className="text-lg flex-shrink-0">💬</span>
-                          <div className="flex-1 min-w-0">
-                            <p
-                              className="text-sm font-medium truncate"
-                              style={{ color: "var(--text-secondary)" }}
-                            >
-                              {chat.title || chat.first_message || "Conversation"}
-                            </p>
-                            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                              {chat.updated_at
-                                ? new Date(chat.updated_at).toLocaleDateString("en-IN", {
-                                    day: "numeric",
-                                    month: "short",
-                                  })
-                                : "Recently"}
-                            </p>
-                          </div>
-                          <span
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                            style={{ color: "var(--accent-tertiary)" }}
-                          >
-                            →
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="flex flex-col items-center py-6 gap-2">
-                    <span className="text-3xl">✨</span>
-                    <p className="text-sm text-center" style={{ color: "var(--text-muted)" }}>
-                      Koi purani baat nahi<br />Naye siray se shuru karte hain!
-                    </p>
-                    <Link href="/chat" className="btn-nidhi text-xs mt-1 py-1.5 px-4">
-                      Start Chat
-                    </Link>
-                  </div>
-                )}
+              <div className="text-right text-xs text-gray-400">
+                <p className="font-semibold text-gray-200">{formattedDate}</p>
+                <p className="mt-0.5">{formattedTime} · India Standard Time</p>
               </div>
             </div>
 
-            {/* ── Nidhi intro card ──────────────────── */}
-            <section
-              className="rounded-3xl p-8 relative overflow-hidden animate-fade-in"
-              style={{
-                background: "linear-gradient(135deg, rgba(124, 107, 255, 0.08), rgba(232, 121, 249, 0.05))",
-                border: "1px solid rgba(124, 107, 255, 0.15)",
-                animationDelay: "400ms",
-              }}
-            >
-              {/* Glow blob */}
-              <div
-                className="absolute -top-10 -right-10 w-48 h-48 rounded-full pointer-events-none"
-                style={{
-                  background: "radial-gradient(circle, rgba(124, 107, 255, 0.15) 0%, transparent 70%)",
-                }}
-              />
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{
-                      background: "linear-gradient(135deg, #7c6bff, #e879f9)",
-                      boxShadow: "0 0 16px rgba(124, 107, 255, 0.4)",
-                    }}
-                  >
-                    ✦
-                  </div>
-                  <div>
-                    <p className="font-bold" style={{ color: "var(--text-primary)" }}>
-                      Nidhi
-                    </p>
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                      Your AI Companion
-                    </p>
-                  </div>
-                </div>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)", maxWidth: "520px" }}>
-                  Main Nidhi hoon — tumhara personal AI companion. Main tumhari conversations yaad rakhti hoon,
-                  goals track karti hoon, research karti hoon, emails manage karti hoon, aur jab bhi zaroorat ho,
-                  help ke liye available hoon. Sirf bolo — main yahaan hoon. 💜
-                </p>
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {["🧠 Long-term Memory", "🔍 Deep Research", "📧 Email & Calendar", "💻 Code Assistant", "🌐 Browser Automation"].map((cap) => (
-                    <span
-                      key={cap}
-                      className="text-xs px-3 py-1 rounded-full"
-                      style={{
-                        background: "rgba(124, 107, 255, 0.1)",
-                        border: "1px solid rgba(124, 107, 255, 0.2)",
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {cap}
-                    </span>
-                  ))}
+            {/* Hero Split Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Left Column: Greeting & Quick Ask */}
+              <div className="lg:col-span-2 space-y-6 flex flex-col justify-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <h2 className="text-4xl font-extrabold leading-tight text-white font-display">
+                    {greeting.emoji} {greeting.text}
+                  </h2>
+                  <p className="text-lg mt-3 text-purple-300 font-medium max-w-lg">
+                    {nidhiMsg}
+                  </p>
+                </motion.div>
+
+                {/* Notion-style Quick Command launcher */}
+                <div
+                  className="flex items-center gap-3 rounded-2xl px-5 py-4 cursor-pointer hover:border-purple-500/30 transition-all border border-purple-500/10 glass-subtle"
+                  onClick={() => setCmdOpen(true)}
+                >
+                  <span className="text-purple-400 font-bold">✦</span>
+                  <span className="text-gray-400 text-sm flex-1">
+                    Ask Nidhi anything... or press <span className="kbd">Ctrl</span> <span className="kbd">K</span>
+                  </span>
                 </div>
               </div>
-            </section>
+
+              {/* Right Column: Large Animated Voice Orb */}
+              <div className="flex flex-col items-center justify-center p-6 rounded-3xl border border-purple-500/10 glass-strong">
+                <p className="text-xs text-gray-400 font-semibold mb-4 uppercase tracking-widest">
+                  Empathetic Voice Orb
+                </p>
+                <Link href="/voice">
+                  <div className="nidhi-orb-container w-40 h-40">
+                    {/* Ripple layers */}
+                    {[1.2, 1.5, 1.8].map((s, idx) => (
+                      <span
+                        key={idx}
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          border: "1px solid rgba(124, 107, 255, 0.25)",
+                          transform: `scale(${s})`,
+                          animation: `ripple 3s ease-out infinite`,
+                          animationDelay: `${idx * 0.8}s`
+                        }}
+                      />
+                    ))}
+                    {/* Central interactive Orb */}
+                    <div
+                      className="w-28 h-28 rounded-full flex items-center justify-center text-3xl font-bold cursor-pointer"
+                      style={{
+                        background: "linear-gradient(135deg, #7c6bff, #a855f7, #e879f9)",
+                        boxShadow: "0 0 35px rgba(124, 107, 255, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.3)",
+                        animation: "breathe 3.5s ease-in-out infinite"
+                      }}
+                    >
+                      ✦
+                    </div>
+                  </div>
+                </Link>
+                <p className="text-xs text-purple-300 font-medium mt-4">
+                  Tap Orb to enter Voice Mode
+                </p>
+              </div>
+
+            </div>
+
+            {/* Quick Actions Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {QUICK_ACTIONS.map((act) => (
+                <Link
+                  key={act.id}
+                  href={act.href}
+                  className="p-5 rounded-2xl border border-purple-500/10 glass hover:border-purple-500/30 transition-all flex flex-col gap-3 group relative overflow-hidden"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-purple-950/40 border border-purple-500/20 flex items-center justify-center transition-all group-hover:scale-110">
+                    {act.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-200 group-hover:text-white transition-colors">
+                      {act.label}
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {act.sub}
+                    </p>
+                  </div>
+                  <ChevronRight className="absolute right-4 bottom-4 w-4 h-4 text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              ))}
+            </div>
+
+            {/* Three Column Widgets Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+              {/* 1. Daily Briefing Panel */}
+              <div className="lg:col-span-2 rounded-3xl border border-purple-500/10 p-6 glass-strong flex flex-col">
+                <div className="flex items-center justify-between border-b border-purple-500/10 pb-4 mb-4">
+                  <h3 className="font-bold text-sm text-gray-200 flex items-center gap-2">
+                    <span>☕</span> Today's Briefing
+                  </h3>
+                  <div className="flex gap-2">
+                    {isPlayingBrief ? (
+                      <button
+                        onClick={handleStopBriefing}
+                        className="text-xs px-3 py-1 rounded-full border border-red-500/30 bg-red-950/20 text-red-400 flex items-center gap-1.5 hover:bg-red-950/40 transition-colors"
+                      >
+                        <Square className="w-2.5 h-2.5 fill-current" /> Stop
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handlePlayBriefing}
+                        disabled={loadingBriefing || !briefing}
+                        className="text-xs px-3 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                      >
+                        <Play className="w-2.5 h-2.5 fill-current" /> Play Briefing
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto max-h-60 no-scrollbar text-sm text-gray-300 space-y-3 leading-relaxed text-left">
+                  {loadingBriefing ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-3">
+                      <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                      <p className="text-xs text-gray-500">Formulating agenda...</p>
+                    </div>
+                  ) : (
+                    briefing.split("\n").map((line, idx) => {
+                      if (line.startsWith("- ") || line.startsWith("* ")) {
+                        return <li key={idx} className="ml-4 list-disc py-0.5 text-gray-300">{line.slice(2)}</li>;
+                      }
+                      if (line.startsWith("### ")) {
+                        return <h4 key={idx} className="font-bold text-violet-300 mt-3">{line.slice(4)}</h4>;
+                      }
+                      if (line.trim() === "") return null;
+                      return <p key={idx}>{line}</p>;
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* 2. Memories & Focus Panel */}
+              <div className="rounded-3xl border border-purple-500/10 p-6 glass-strong flex flex-col">
+                <h3 className="font-bold text-sm text-gray-200 border-b border-purple-500/10 pb-4 mb-4 flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-pink-400" /> Recent Memories
+                </h3>
+                <div className="flex-1 overflow-y-auto max-h-60 no-scrollbar space-y-3 text-left">
+                  {memories.length > 0 ? (
+                    memories.map((mem: any, idx: number) => (
+                      <div
+                        key={mem.id || idx}
+                        className="p-3 rounded-xl border border-purple-500/5 bg-purple-950/10 flex items-start gap-2.5 hover:border-purple-500/20 transition-all"
+                      >
+                        <span className="text-xs text-purple-400 mt-0.5">✦</span>
+                        <div>
+                          <p className="text-xs text-gray-300 font-medium">
+                            {mem.content || mem.summary}
+                          </p>
+                          <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" />
+                            {mem.created_at
+                              ? new Date(mem.created_at).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                })
+                              : "Recent"}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 gap-2">
+                      <span className="text-2xl">🧠</span>
+                      <p className="text-xs text-gray-500 text-center leading-relaxed">
+                        Abhi koi memories nahi hain.<br />Talk to Nidhi to create memories!
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
 
           </div>
         </main>
       </div>
 
-      {/* Global Command Bar */}
       <CommandBar isOpen={cmdOpen} onClose={() => setCmdOpen(false)} />
     </>
   );

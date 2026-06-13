@@ -48,4 +48,10 @@ def requires_confirmation(tool: str, argument: str) -> bool:
         if any(w in arg for w in ["open", "start", "run", "message", "send", "delete", "write"]):
             return True
             
+    # WhatsApp: sending messages
+    elif tool == "whatsapp":
+        if any(w in arg for w in ["send", "message", "write", "post"]):
+            return True
+            
     return False
+

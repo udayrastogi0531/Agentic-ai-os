@@ -78,6 +78,9 @@ async def run_tools_node(state: AgentState) -> dict:
             result = await run_coding_agent(injected_state)
         elif tool_name == "github":
             result = await run_github_agent(injected_state)
+        elif tool_name == "whatsapp":
+            from app.agents.whatsapp_agent import run_whatsapp_agent
+            result = await run_whatsapp_agent(injected_state)
         elif tool_name == "voice":
             # Direct response for voice control triggers
             result = {
