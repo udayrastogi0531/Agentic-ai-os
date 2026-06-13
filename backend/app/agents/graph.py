@@ -26,6 +26,7 @@ from app.agents.gmail_agent import run_gmail_agent
 from app.agents.calendar_agent import run_calendar_agent
 from app.agents.github_agent import run_github_agent
 from app.agents.computer_agent import run_computer_agent
+from app.agents.whatsapp_agent import run_whatsapp_agent
 
 logger = logging.getLogger(__name__)
 
@@ -173,6 +174,7 @@ def route_next(state: AgentState) -> str:
         "code": "coding_node",
         "github": "github_node",
         "computer": "computer_node",
+        "whatsapp": "whatsapp_node",
         "voice": "voice_node",
     }
 
@@ -209,6 +211,7 @@ def build_agent_graph() -> StateGraph:
     workflow.add_node("coding_node", make_agent_node(run_coding_agent, "coding"))
     workflow.add_node("github_node", make_agent_node(run_github_agent, "github"))
     workflow.add_node("computer_node", make_agent_node(run_computer_agent, "computer"))
+    workflow.add_node("whatsapp_node", make_agent_node(run_whatsapp_agent, "whatsapp"))
     workflow.add_node("voice_node", make_agent_node(run_voice_agent, "voice"))
 
     # Establish entry point
@@ -230,6 +233,7 @@ def build_agent_graph() -> StateGraph:
     workflow.add_edge("coding_node", "evaluate")
     workflow.add_edge("github_node", "evaluate")
     workflow.add_edge("computer_node", "evaluate")
+    workflow.add_edge("whatsapp_node", "evaluate")
     workflow.add_edge("voice_node", "evaluate")
 
     # Connect conditional routing edges from planner
@@ -248,6 +252,7 @@ def build_agent_graph() -> StateGraph:
             "coding_node": "coding_node",
             "github_node": "github_node",
             "computer_node": "computer_node",
+            "whatsapp_node": "whatsapp_node",
             "voice_node": "voice_node",
             "response": "response",
         }
@@ -282,3 +287,4 @@ def get_agent_graph():
         _compiled_graph = workflow.compile()
         logger.info("✅ Uday AI LangGraph agent compiled successfully.")
     return _compiled_graph
+
