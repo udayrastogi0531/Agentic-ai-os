@@ -49,6 +49,17 @@ services:
       - ANONYMIZED_TELEMETRY=false
     restart: unless-stopped
 
+  # ── Browserless Chrome ──────────────────────────
+  browserless:
+    image: browserless/chrome:latest
+    container_name: udayai-browserless
+    ports:
+      - "3005:3000"
+    environment:
+      - MAX_CONCURRENT_SESSIONS=5
+      - DEMO_MODE=false
+    restart: unless-stopped
+
   # ── Backend (FastAPI) ───────────────────────────
   backend:
     build:
@@ -58,15 +69,17 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ../.env
     environment:
-      DATABASE_URL: postgresql+asyncpg://udayai:udayai_password@postgres:5432/udayai_db
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-udayai}:${POSTGRES_PASSWORD:-udayai_password}@postgres:5432/${POSTGRES_DB:-udayai_db}
       REDIS_URL: redis://redis:6379/0
       CHROMA_HOST: chromadb
       CHROMA_PORT: 8000
+      BROWSERLESS_URL: ws://browserless:3000
     volumes:
       - ../backend:/app
       - upload_data:/app/data/uploads
+      - whatsapp_data:/app/data/playwright_whatsapp
     depends_on:
       postgres:
         condition: service_healthy
@@ -127,3 +140,4 @@ volumes:
   chroma_data:
   upload_data:
   ollama_data:
+  whatsapp_data:

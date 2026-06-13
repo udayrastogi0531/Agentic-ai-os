@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 import logging
-from bs4 import BeautifulSoup  # Wait, bs4 is not in requirements.txt, we will use Python's built-in html.parser
 import urllib.parse
 from html.parser import HTMLParser
 from io import StringIO
@@ -63,11 +62,20 @@ async def playwright_browser_action(
         logger.warning("[Browser Agent] Playwright library not installed. Falling back to HTTP.")
         return {"success": False, "error": "Playwright is not installed."}
 
+    browser = None
     try:
         async with async_playwright() as p:
-            # Start headless browser
-            browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page()
+            # Start headless browser (remote browserless over CDP if configured)
+            from app.config import get_settings
+            settings = get_settings()
+            if settings.browserless_url:
+                logger.info(f"[Browser Agent] Connecting to browserless instance at {settings.browserless_url}...")
+                browser = await p.chromium.connect_over_cdp(settings.browserless_url)
+                context = browser.contexts[0] if browser.contexts else await browser.new_context()
+                page = await context.new_page()
+            else:
+                browser = await p.chromium.launch(headless=True)
+                page = await browser.new_page()
             
             logger.info(f"[Browser Agent] Playwright page opened for action '{action}'")
 
@@ -77,7 +85,6 @@ async def playwright_browser_action(
                 await page.goto(url, wait_until="networkidle", timeout=10000)
                 content = await page.content()
                 title = await page.title()
-                await browser.close()
                 return {"success": True, "title": title, "content": content}
 
             elif action == "click":
@@ -88,7 +95,6 @@ async def playwright_browser_action(
                 await page.wait_for_timeout(2000) # Wait for page changes
                 content = await page.content()
                 title = await page.title()
-                await browser.close()
                 return {"success": True, "title": title, "content": content}
 
             elif action == "fill":
@@ -99,7 +105,6 @@ async def playwright_browser_action(
                 await page.wait_for_timeout(2000)
                 content = await page.content()
                 title = await page.title()
-                await browser.close()
                 return {"success": True, "title": title, "content": content}
                 
             elif action == "download":
@@ -129,7 +134,6 @@ async def playwright_browser_action(
                 
                 path = upload_dir / filename
                 await download.save_as(str(path))
-                await browser.close()
                 return {
                     "success": True, 
                     "download_path": str(path),
@@ -138,12 +142,14 @@ async def playwright_browser_action(
                     "doc_id": doc_id
                 }
 
-            await browser.close()
             return {"success": False, "error": f"Unknown action: {action}"}
             
     except Exception as e:
         logger.error(f"[Browser Agent] Playwright failed: {e}", exc_info=True)
         return {"success": False, "error": str(e)}
+    finally:
+        if browser:
+            await browser.close()
 
 # ── HTTP Scraper Fallback ─────────────────────────────────────────────
 

@@ -89,17 +89,39 @@ async def run_computer_agent(state: AgentState) -> dict:
 
     if action_type == "open_app":
         app_name = target.lower().strip()
+        
+        # 1. Shell character filter to prevent injection
+        import re
+        if re.search(r"[&\|;\$><`!\r\n]", target):
+            logger.warning(f"[Computer Agent] Blocked command execution with shell characters: {target}")
+            result_text = "❌ **Command Execution Blocked**\n\nSecurity filter blocked command execution due to presence of dangerous shell characters."
+            return {
+                "agent_results": {
+                    **state.get("agent_results", {}),
+                    "computer_agent": {"response": result_text, "action": action_type, "target": target},
+                },
+                "final_response": result_text,
+                "messages": [AIMessage(content=result_text)],
+            }
+            
         try:
             if any(w in app_name for w in ["vscode", "vs code", "code"]):
-                subprocess.Popen(["code"], shell=True)
+                subprocess.Popen(["code"])
                 result_text = "💻 **VS Code Opened**\n\nI have successfully launched VS Code for you."
             elif "chrome" in app_name:
-                subprocess.Popen(["start", "chrome"], shell=True)
+                if os.name == "nt":
+                    subprocess.Popen(["cmd.exe", "/c", "start chrome"])
+                else:
+                    subprocess.Popen(["google-chrome"])
                 result_text = "💻 **Google Chrome Opened**\n\nI have successfully launched Google Chrome."
             else:
-                # Try to run target as a command
-                subprocess.Popen([target], shell=True)
-                result_text = f"💻 **Command Executed**\n\nI have launched the application or run command: `{target}`"
+                import shlex
+                cmd_args = shlex.split(target)
+                if cmd_args:
+                    subprocess.Popen(cmd_args)
+                    result_text = f"💻 **Command Executed**\n\nI have launched the application or run command: `{target}`"
+                else:
+                    result_text = "❌ **Command Execution Failed**\n\nEmpty command targeted."
         except Exception as err:
             logger.error(f"[Computer Agent] Open app failed: {err}")
             result_text = f"❌ **Failed to Open App**\n\nError attempting to open `{target}`: {err}"
@@ -107,14 +129,39 @@ async def run_computer_agent(state: AgentState) -> dict:
     elif action_type == "open_folder":
         folder_path = os.path.expandvars(target)
         try:
+            abs_path = os.path.abspath(folder_path)
+            
+            # Check for path traversal elements
+            if ".." in folder_path or not os.path.exists(abs_path):
+                raise ValueError("Path traversal attempt or invalid directory path detected.")
+                
+            # Block access to system-critical directories
             if os.name == "nt":
-                os.startfile(folder_path)
+                forbidden_dirs = [
+                    os.environ.get("SystemRoot", "C:\\Windows").lower(),
+                    "c:\\windows",
+                    "c:\\program files",
+                    "c:\\program files (x86)",
+                    "c:\\users\\all users",
+                    "c:\\programdata"
+                ]
+                abs_path_lower = abs_path.lower()
+                if any(abs_path_lower.startswith(fd) for fd in forbidden_dirs):
+                    raise PermissionError("Access to system-critical directories or system files is restricted.")
             else:
-                subprocess.Popen(["xdg-open", folder_path])
-            result_text = f"📂 **Folder/File Opened**\n\nI have opened the folder or file at: `{folder_path}`"
+                forbidden_dirs = ["/etc", "/bin", "/sbin", "/usr", "/var", "/lib", "/sys", "/proc", "/root"]
+                abs_path_lower = abs_path.lower()
+                if any(abs_path_lower.startswith(fd) for fd in forbidden_dirs):
+                    raise PermissionError("Access to system-critical directories or system files is restricted.")
+
+            if os.name == "nt":
+                os.startfile(abs_path)
+            else:
+                subprocess.Popen(["xdg-open", abs_path])
+            result_text = f"📂 **Folder/File Opened**\n\nI have opened the folder or file at: `{abs_path}`"
         except Exception as err:
             logger.error(f"[Computer Agent] Open folder failed: {err}")
-            result_text = f"❌ **Failed to Open Folder**\n\nError attempting to open folder at `{target}`: {err}"
+            result_text = f"❌ **Failed to Open Folder**\n\nError attempting to open folder: {err}"
 
     elif action_type == "whatsapp_message":
         # Check safety/approval status before execution
@@ -155,94 +202,103 @@ async def run_whatsapp_automation(contact_name: str, message: str) -> str:
     context_dir = Path("./data/playwright_whatsapp")
     context_dir.mkdir(parents=True, exist_ok=True)
 
-    async with async_playwright() as p:
-        # Launch persistent context browser
-        browser = await p.chromium.launch_persistent_context(
-            user_data_dir=str(context_dir),
-            headless=True,
-            viewport={"width": 1280, "height": 800}
-        )
+    browser = None
+    try:
+        async with async_playwright() as p:
+            # Launch persistent context browser (use remote browserless CDP if configured)
+            from app.config import get_settings
+            settings = get_settings()
 
-        page = await browser.new_page()
-        logger.info("[Computer Agent] Navigating to WhatsApp Web...")
-        await page.goto("https://web.whatsapp.com/", wait_until="networkidle", timeout=30000)
-
-        # Wait to check if logged in (div[data-tab="3"] is chat search or canvas QR is visible)
-        try:
-            # Check for QR canvas
-            qr_canvas = await page.query_selector("canvas")
-            if qr_canvas:
-                # Save screenshot of QR code for the user to scan
-                screenshot_path = Path("./data/uploads/whatsapp_login.png")
-                screenshot_path.parent.mkdir(parents=True, exist_ok=True)
-                await page.screenshot(path=str(screenshot_path))
-                await browser.close()
-                return (
-                    "⚠️ **WhatsApp Scan Required**\n\n"
-                    "You are not logged in to WhatsApp Web.\n"
-                    "Please scan the QR code to log in. I have saved a screenshot of the QR code to: "
-                    "`data/uploads/whatsapp_login.png`."
+            if settings.browserless_url:
+                logger.info(f"[Computer Agent] Connecting to browserless instance at {settings.browserless_url}...")
+                browser = await p.chromium.connect_over_cdp(settings.browserless_url)
+                context = browser.contexts[0] if browser.contexts else await browser.new_context(viewport={"width": 1280, "height": 800})
+                page = await context.new_page()
+            else:
+                browser = await p.chromium.launch_persistent_context(
+                    user_data_dir=str(context_dir),
+                    headless=True,
+                    viewport={"width": 1280, "height": 800}
                 )
-        except Exception as check_err:
-            logger.debug(f"Checked QR Canvas with exception (probably logged in): {check_err}")
+                page = browser.pages[0] if browser.pages else await browser.new_page()
+            logger.info("[Computer Agent] Navigating to WhatsApp Web...")
+            await page.goto("https://web.whatsapp.com/", wait_until="networkidle", timeout=30000)
 
-        # Search for contact
-        search_selectors = [
-            'div[contenteditable="true"][data-tab="3"]',
-            'div[data-tab="3"]',
-            'input[placeholder="Search or start new chat"]'
-        ]
-
-        search_box = None
-        for sel in search_selectors:
+            # Wait to check if logged in (div[data-tab="3"] is chat search or canvas QR is visible)
             try:
-                search_box = await page.wait_for_selector(sel, timeout=10000)
-                if search_box:
-                    break
-            except Exception:
-                continue
+                # Check for QR canvas
+                qr_canvas = await page.query_selector("canvas")
+                if qr_canvas:
+                    # Save screenshot of QR code for the user to scan
+                    screenshot_path = Path("./data/uploads/whatsapp_login.png")
+                    screenshot_path.parent.mkdir(parents=True, exist_ok=True)
+                    await page.screenshot(path=str(screenshot_path))
+                    return (
+                        "⚠️ **WhatsApp Scan Required**\n\n"
+                        "You are not logged in to WhatsApp Web.\n"
+                        "Please scan the QR code to log in. I have saved a screenshot of the QR code to: "
+                        "`data/uploads/whatsapp_login.png`."
+                    )
+            except Exception as check_err:
+                logger.debug(f"Checked QR Canvas with exception (probably logged in): {check_err}")
 
-        if not search_box:
-            # Save debug screenshot
-            err_screenshot = Path("./data/uploads/whatsapp_error.png")
-            await page.screenshot(path=str(err_screenshot))
+            # Search for contact
+            search_selectors = [
+                'div[contenteditable="true"][data-tab="3"]',
+                'div[data-tab="3"]',
+                'input[placeholder="Search or start new chat"]'
+            ]
+
+            search_box = None
+            for sel in search_selectors:
+                try:
+                    search_box = await page.wait_for_selector(sel, timeout=10000)
+                    if search_box:
+                        break
+                except Exception:
+                    continue
+
+            if not search_box:
+                # Save debug screenshot
+                err_screenshot = Path("./data/uploads/whatsapp_error.png")
+                await page.screenshot(path=str(err_screenshot))
+                return "❌ **WhatsApp Timeout**\n\nCould not locate the search box. Screenshot saved to `data/uploads/whatsapp_error.png`."
+
+            # Search and Select contact
+            await search_box.click()
+            await search_box.fill("")
+            await search_box.type(contact_name)
+            await page.wait_for_timeout(2000)
+            await page.keyboard.press("Enter")
+            await page.wait_for_timeout(2000)
+
+            # Locate message box
+            message_selectors = [
+                'div[contenteditable="true"][data-tab="10"]',
+                'div[data-tab="10"]',
+                'footer div[contenteditable="true"]'
+            ]
+
+            message_box = None
+            for sel in message_selectors:
+                try:
+                    message_box = await page.wait_for_selector(sel, timeout=5000)
+                    if message_box:
+                        break
+                except Exception:
+                    continue
+
+            if not message_box:
+                return f"❌ **Contact Not Found**\n\nCould not focus chat for contact: `{contact_name}`."
+
+            # Send message
+            await message_box.click()
+            await message_box.type(message)
+            await page.wait_for_timeout(1000)
+            await page.keyboard.press("Enter")
+            await page.wait_for_timeout(2000)  # Wait for send completion
+
+            return f"✅ **WhatsApp Message Sent!**\n\nMessage successfully sent to `{contact_name}`: \"{message}\"."
+    finally:
+        if browser:
             await browser.close()
-            return "❌ **WhatsApp Timeout**\n\nCould not locate the search box. Screenshot saved to `data/uploads/whatsapp_error.png`."
-
-        # Search and Select contact
-        await search_box.click()
-        await search_box.fill("")
-        await search_box.type(contact_name)
-        await page.wait_for_timeout(2000)
-        await page.keyboard.press("Enter")
-        await page.wait_for_timeout(2000)
-
-        # Locate message box
-        message_selectors = [
-            'div[contenteditable="true"][data-tab="10"]',
-            'div[data-tab="10"]',
-            'footer div[contenteditable="true"]'
-        ]
-
-        message_box = None
-        for sel in message_selectors:
-            try:
-                message_box = await page.wait_for_selector(sel, timeout=5000)
-                if message_box:
-                    break
-            except Exception:
-                continue
-
-        if not message_box:
-            await browser.close()
-            return f"❌ **Contact Not Found**\n\nCould not focus chat for contact: `{contact_name}`."
-
-        # Send message
-        await message_box.click()
-        await message_box.type(message)
-        await page.wait_for_timeout(1000)
-        await page.keyboard.press("Enter")
-        await page.wait_for_timeout(2000)  # Wait for send completion
-
-        await browser.close()
-        return f"✅ **WhatsApp Message Sent!**\n\nMessage successfully sent to `{contact_name}`: \"{message}\"."

@@ -156,9 +156,22 @@ All configuration is via environment variables. See `.env.example` for the full 
 
 | Provider | Setup | Model |
 |----------|-------|-------|
-| **Ollama** (default) | Install Ollama, pull model | llama3.1:8b |
-| **OpenAI** | Set `OPENAI_API_KEY` | gpt-4o-mini |
+| **Ollama** | Install Ollama, pull model | llama3.1:8b |
+| **OpenAI** (Optional) | Set `OPENAI_API_KEY` | gpt-4o-mini |
 | **Gemini** | Set `GOOGLE_API_KEY` | gemini-2.0-flash |
+| **Groq** | Set `GROQ_API_KEY` | llama-3.3-70b-specdec |
+
+### Production Smart Router Rules
+The system dynamically routes queries based on complexity, category classification, and live provider health:
+- **Fast Chat** ➔ Groq (`llama-3.3-70b-specdec`)
+- **Coding** ➔ DeepSeek (`deepseek-r1-distill-llama-70b` via Groq)
+- **Reasoning** ➔ Gemini (`gemini-2.0-flash`)
+- **Research** ➔ Gemini (`gemini-2.0-flash`)
+- **Local Privacy Tasks** ➔ Ollama (`llama3.1:8b`)
+
+### Fallback Chain
+If a provider is offline or unconfigured, the router automatically fails over:
+`Gemini` ➔ `Groq` ➔ `Ollama`
 
 ### Integrations
 

@@ -160,3 +160,86 @@ async def get_agent_status(
         {"name": "task", "display_name": "✅ Task Agent", "status": "active"},
     ]
     return {"agents": agents, "total": len(agents)}
+
+
+@router.get("/metrics", summary="Prometheus metrics telemetry")
+async def get_metrics(
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Return system metrics in Prometheus exposition format."""
+    import os
+    import psutil
+    from fastapi.responses import PlainTextResponse
+    from app.llm.router import SmartModelRouter
+    from app.models.document import Document, DocumentChunk
+
+    # Memory usage
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    mem_percent = process.memory_percent()
+
+    # DB records counts
+    total_convs = (await db.execute(select(func.count()).select_from(Conversation))).scalar() or 0
+    total_msgs = (await db.execute(select(func.count()).select_from(Message))).scalar() or 0
+    total_memories = (await db.execute(select(func.count()).select_from(Memory))).scalar() or 0
+    total_docs = (await db.execute(select(func.count()).select_from(Document))).scalar() or 0
+    total_chunks = (await db.execute(select(func.count()).select_from(DocumentChunk))).scalar() or 0
+
+    # Agent calls counts
+    agent_stats_stmt = select(AgentLog.agent_name, func.count()).group_by(AgentLog.agent_name)
+    agent_result = await db.execute(agent_stats_stmt)
+    agent_counts = {row[0]: row[1] for row in agent_result.all() if row[0]}
+
+    lines = []
+
+    # System Memory
+    lines.append("# HELP udayai_memory_rss_bytes Resident Set Size (RSS) memory usage in bytes")
+    lines.append("# TYPE udayai_memory_rss_bytes gauge")
+    lines.append(f"udayai_memory_rss_bytes {mem_info.rss}")
+    lines.append("# HELP udayai_memory_vms_bytes Virtual Memory Size (VMS) memory usage in bytes")
+    lines.append("# TYPE udayai_memory_vms_bytes gauge")
+    lines.append(f"udayai_memory_vms_bytes {mem_info.vms}")
+    lines.append("# HELP udayai_memory_percent Memory usage percentage of the process")
+    lines.append("# TYPE udayai_memory_percent gauge")
+    lines.append(f"udayai_memory_percent {mem_percent:.4f}")
+
+    # Model Router
+    router_stats = SmartModelRouter.stats
+    lines.append("# HELP udayai_router_requests_total Total number of LLM routing requests")
+    lines.append("# TYPE udayai_router_requests_total counter")
+    lines.append(f"udayai_router_requests_total {router_stats['total_requests']}")
+    lines.append("# HELP udayai_router_fallbacks_total Total number of fallbacks triggered in router")
+    lines.append("# TYPE udayai_router_fallbacks_total counter")
+    lines.append(f"udayai_router_fallbacks_total {router_stats['fallbacks_triggered']}")
+
+    for provider, count in router_stats["providers"].items():
+        lines.append(f"udayai_router_provider_requests_total{{provider=\"{provider}\"}} {count}")
+    for category, count in router_stats["categories"].items():
+        lines.append(f"udayai_router_category_requests_total{{category=\"{category}\"}} {count}")
+
+    # Agent Calls
+    lines.append("# HELP udayai_agent_calls_total Total calls per agent type")
+    lines.append("# TYPE udayai_agent_calls_total counter")
+    for agent, count in agent_counts.items():
+        lines.append(f"udayai_agent_calls_total{{agent=\"{agent}\"}} {count}")
+
+    # System Entities
+    lines.append("# HELP udayai_conversations_total Total number of conversations")
+    lines.append("# TYPE udayai_conversations_total gauge")
+    lines.append(f"udayai_conversations_total {total_convs}")
+    lines.append("# HELP udayai_messages_total Total number of messages")
+    lines.append("# TYPE udayai_messages_total gauge")
+    lines.append(f"udayai_messages_total {total_msgs}")
+    lines.append("# HELP udayai_memories_total Total number of consolidated memories")
+    lines.append("# TYPE udayai_memories_total gauge")
+    lines.append(f"udayai_memories_total {total_memories}")
+
+    # RAG Chunks
+    lines.append("# HELP udayai_rag_documents_total Total number of documents uploaded")
+    lines.append("# TYPE udayai_rag_documents_total gauge")
+    lines.append(f"udayai_rag_documents_total {total_docs}")
+    lines.append("# HELP udayai_rag_chunks_total Total number of document chunks")
+    lines.append("# TYPE udayai_rag_chunks_total gauge")
+    lines.append(f"udayai_rag_chunks_total {total_chunks}")
+
+    return PlainTextResponse("\n".join(lines) + "\n")

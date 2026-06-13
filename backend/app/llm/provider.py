@@ -17,7 +17,7 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-LLMProviderType = Literal["ollama", "openai", "gemini"]
+LLMProviderType = Literal["ollama", "openai", "gemini", "groq"]
 
 
 def get_llm(
@@ -47,6 +47,8 @@ def get_llm(
             return _create_openai(model, temperature, max_tokens, streaming)
         elif provider == "gemini":
             return _create_gemini(model, temperature, max_tokens, streaming)
+        elif provider == "groq":
+            return _create_groq(model, temperature, max_tokens, streaming)
         else:
             raise ValueError(f"Unknown LLM provider: {provider}")
     except Exception as e:
@@ -54,17 +56,24 @@ def get_llm(
             f"[Model Router] Provider '{provider}' creation failed: {e}. "
             "Executing fallback routing..."
         )
-        # Fallback sequence: gemini -> openai -> ollama
+        # Fallback sequence: gemini -> groq -> ollama
         if provider == "gemini":
-            if settings.openai_api_key:
-                logger.info("[Model Router Fallback] Gemini failed, falling back to OpenAI")
-                return _create_openai(None, temperature, max_tokens, streaming)
+            if settings.groq_api_key:
+                logger.info("[Model Router Fallback] Gemini failed, falling back to Groq")
+                return _create_groq(None, temperature, max_tokens, streaming)
             else:
                 logger.info("[Model Router Fallback] Gemini failed, falling back to Ollama")
                 return _create_ollama(None, temperature, max_tokens, streaming)
-        elif provider == "openai":
-            logger.info("[Model Router Fallback] OpenAI failed, falling back to Ollama")
+        elif provider == "groq":
+            logger.info("[Model Router Fallback] Groq failed, falling back to Ollama")
             return _create_ollama(None, temperature, max_tokens, streaming)
+        elif provider == "openai":
+            if settings.groq_api_key:
+                logger.info("[Model Router Fallback] OpenAI failed, falling back to Groq")
+                return _create_groq(None, temperature, max_tokens, streaming)
+            else:
+                logger.info("[Model Router Fallback] OpenAI failed, falling back to Ollama")
+                return _create_ollama(None, temperature, max_tokens, streaming)
         else:
             # Re-raise original exception if absolute fallback fails
             raise e
@@ -79,7 +88,7 @@ def _create_ollama(
     """Create an Ollama LLM instance."""
     from langchain_ollama import ChatOllama
 
-    model_name = model or settings.ollama_default_model
+    model_name = model or settings.ollama_chat_model
     logger.info(f"Creating Ollama LLM: {model_name}")
 
     return ChatOllama(
@@ -139,6 +148,31 @@ def _create_gemini(
     )
 
 
+def _create_groq(
+    model: str | None,
+    temperature: float,
+    max_tokens: int,
+    streaming: bool,
+) -> BaseChatModel:
+    """Create a Groq LLM instance using ChatOpenAI wrapper."""
+    from langchain_openai import ChatOpenAI
+
+    if not settings.groq_api_key:
+        raise ValueError("GROQ_API_KEY is not set.")
+
+    model_name = model or settings.groq_default_model
+    logger.info(f"Creating Groq LLM: {model_name}")
+
+    return ChatOpenAI(
+        api_key=settings.groq_api_key,
+        base_url="https://api.groq.com/openai/v1",
+        model=model_name,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        streaming=streaming,
+    )
+
+
 def get_available_providers() -> list[dict]:
     """Return a list of available (configured) LLM providers."""
     providers = []
@@ -147,17 +181,17 @@ def get_available_providers() -> list[dict]:
     providers.append({
         "id": "ollama",
         "name": "Ollama (Local)",
-        "models": [settings.ollama_default_model],
+        "models": [settings.ollama_chat_model],
         "is_default": settings.default_llm_provider == "ollama",
         "status": "available",
     })
 
-    if settings.openai_api_key:
+    if settings.groq_api_key:
         providers.append({
-            "id": "openai",
-            "name": "OpenAI",
-            "models": [settings.openai_model, "gpt-4o", "gpt-4o-mini"],
-            "is_default": settings.default_llm_provider == "openai",
+            "id": "groq",
+            "name": "Groq",
+            "models": [settings.groq_default_model, settings.groq_coding_model],
+            "is_default": settings.default_llm_provider == "groq",
             "status": "available",
         })
 
@@ -167,6 +201,15 @@ def get_available_providers() -> list[dict]:
             "name": "Google Gemini",
             "models": [settings.gemini_model, "gemini-2.0-flash", "gemini-1.5-pro"],
             "is_default": settings.default_llm_provider == "gemini",
+            "status": "available",
+        })
+
+    if settings.openai_api_key:
+        providers.append({
+            "id": "openai",
+            "name": "OpenAI",
+            "models": [settings.openai_model, "gpt-4o", "gpt-4o-mini"],
+            "is_default": settings.default_llm_provider == "openai",
             "status": "available",
         })
 

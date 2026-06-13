@@ -44,7 +44,7 @@ migrate-create: ## Create a new migration (usage: make migrate-create msg="descr
 # ── LLM ───────────────────────────────────────────
 
 ollama-pull: ## Pull default Ollama model
-	ollama pull llama3.1:8b
+	ollama pull qwen2.5:3b && ollama pull nomic-embed-text
 
 # ── Testing ───────────────────────────────────────
 

@@ -20,13 +20,19 @@ settings = get_settings()
 
 @lru_cache(maxsize=1)
 def _get_embedding_model():
-    """Lazy-load the sentence-transformer model (singleton)."""
-    from sentence_transformers import SentenceTransformer
-
-    logger.info(f"Loading embedding model: {settings.embedding_model}")
-    model = SentenceTransformer(settings.embedding_model)
-    logger.info("✅ Embedding model loaded.")
-    return model
+    """Lazy-load the embedding model (singleton)."""
+    embed_model_name = settings.embedding_model
+    if embed_model_name == "nomic-embed-text" or "nomic" in embed_model_name.lower():
+        from langchain_ollama import OllamaEmbeddings
+        logger.info(f"Loading Ollama Embeddings model: {settings.ollama_embed_model} at {settings.ollama_base_url}")
+        return OllamaEmbeddings(
+            base_url=settings.ollama_base_url,
+            model=settings.ollama_embed_model,
+        )
+    else:
+        from sentence_transformers import SentenceTransformer
+        logger.info(f"Loading sentence-transformer model: {embed_model_name}")
+        return SentenceTransformer(embed_model_name)
 
 
 def generate_embedding(text: str) -> list[float]:
@@ -40,6 +46,8 @@ def generate_embedding(text: str) -> list[float]:
         List of floats representing the embedding vector.
     """
     model = _get_embedding_model()
+    if hasattr(model, "embed_query"):
+        return model.embed_query(text)
     embedding = model.encode(text, normalize_embeddings=True)
     return embedding.tolist()
 
@@ -55,6 +63,8 @@ def generate_embeddings(texts: list[str]) -> list[list[float]]:
         List of embedding vectors.
     """
     model = _get_embedding_model()
+    if hasattr(model, "embed_documents"):
+        return model.embed_documents(texts)
     embeddings = model.encode(texts, normalize_embeddings=True, batch_size=32)
     return embeddings.tolist()
 

@@ -56,11 +56,13 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 1440  # 24 hours
 
     # ── LLM Providers ────────────────────────────────────────────────
-    default_llm_provider: Literal["ollama", "openai", "gemini"] = "ollama"
+    default_llm_provider: Literal["ollama", "openai", "gemini", "groq"] = "ollama"
 
     # Ollama
     ollama_base_url: str = "http://localhost:11434"
-    ollama_default_model: str = "llama3.1:8b"
+    ollama_default_model: str = "qwen2.5:3b"
+    ollama_chat_model: str = "qwen2.5:3b"
+    ollama_embed_model: str = "nomic-embed-text"
 
     # OpenAI
     openai_api_key: str = ""
@@ -69,6 +71,11 @@ class Settings(BaseSettings):
     # Google Gemini
     google_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
+
+    # Groq
+    groq_api_key: str = ""
+    groq_default_model: str = "llama-3.3-70b-specdec"
+    groq_coding_model: str = "deepseek-r1-distill-llama-70b"
 
     # ── Embeddings ────────────────────────────────────────────────────
     embedding_model: str = "all-MiniLM-L6-v2"
@@ -95,6 +102,7 @@ class Settings(BaseSettings):
     mcp_filesystem_enabled: bool = True
     mcp_filesystem_root: str = str(BASE_DIR / "workspace")
     mcp_browser_enabled: bool = True
+    browserless_url: str = ""
     mcp_gmail_enabled: bool = False
     mcp_calendar_enabled: bool = False
     mcp_github_enabled: bool = False

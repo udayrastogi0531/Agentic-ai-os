@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.database import get_db_session
+from app.security.rate_limiter import RateLimiter
 from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.document import Document, DocumentChunk
@@ -42,6 +43,7 @@ router = APIRouter(prefix="/files", tags=["Files / RAG"])
     response_model=FileResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Upload a document for RAG",
+    dependencies=[Depends(RateLimiter(requests=10, window_seconds=3600, name="upload"))],
 )
 async def upload_file(
     file: UploadFile = File(...),
@@ -57,23 +59,44 @@ async def upload_file(
             detail=f"Unsupported file type: {suffix}. Supported: {list(SUPPORTED_TYPES.keys())}",
         )
 
-    # Validate file size
-    content = await file.read()
-    max_size = settings.max_upload_size_mb * 1024 * 1024
-    if len(content) > max_size:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File too large. Max: {settings.max_upload_size_mb}MB",
-        )
-
-    # Save file
+    # Save file by streaming in chunks
     doc_id = uuid.uuid4()
     filename = f"{doc_id}{suffix}"
     upload_dir = settings.upload_path / str(user.id)
     upload_dir.mkdir(parents=True, exist_ok=True)
     file_path = upload_dir / filename
 
-    file_path.write_bytes(content)
+    max_size = settings.max_upload_size_mb * 1024 * 1024
+    total_bytes = 0
+
+    try:
+        with open(file_path, "wb") as buffer:
+            while True:
+                chunk = await file.read(65536)  # 64KB chunk
+                if not chunk:
+                    break
+                total_bytes += len(chunk)
+                if total_bytes > max_size:
+                    buffer.close()
+                    file_path.unlink(missing_ok=True)
+                    raise HTTPException(
+                        status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        detail=f"File too large. Max: {settings.max_upload_size_mb}MB",
+                    )
+                buffer.write(chunk)
+                
+                # Log progress every 1MB
+                if (total_bytes // (1024 * 1024)) > ((total_bytes - len(chunk)) // (1024 * 1024)):
+                    logger.info(f"Uploading {file.filename}: {total_bytes / (1024 * 1024):.1f}MB written")
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        file_path.unlink(missing_ok=True)
+        logger.error(f"Stream upload failed for {file.filename}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Upload failed: {str(e)}",
+        )
 
     # Create DB record
     document = Document(
@@ -82,7 +105,7 @@ async def upload_file(
         filename=filename,
         original_filename=file.filename or "unknown",
         file_type=SUPPORTED_TYPES[suffix],
-        file_size=len(content),
+        file_size=total_bytes,
         storage_path=str(file_path),
         status="processing",
     )
@@ -130,6 +153,11 @@ async def upload_file(
 
     except Exception as e:
         logger.error(f"Document processing failed: {e}")
+        # Clean up physical file on failure to prevent disk leaks
+        try:
+            file_path.unlink(missing_ok=True)
+        except Exception:
+            pass
         document.status = "error"
         document.metadata_ = {"error": str(e)}
         await db.flush()

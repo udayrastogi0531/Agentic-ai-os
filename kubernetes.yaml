@@ -36,7 +36,7 @@ data:
   CHROMA_HOST: "chromadb-service"
   CHROMA_PORT: "8000"
   OLLAMA_BASE_URL: "http://ollama-service:11434"
-  OLLAMA_DEFAULT_MODEL: "qwen2.5:7b"
+  OLLAMA_DEFAULT_MODEL: "qwen2.5:3b"
   OLLAMA_CODE_MODEL: "deepseek-coder:6.7b"
   GEMINI_MODEL: "gemini-1.5-flash"
   OPENAI_MODEL: "gpt-4o-mini"
@@ -52,12 +52,17 @@ metadata:
   namespace: udayai
 type: Opaque
 data:
-  # Base64 encoded values. Replace these in real production deployments.
+  # Base64 encoded values.
   POSTGRES_PASSWORD: "dWRheWFpX3Bhc3N3b3Jk" # udayai_password
-  NEXTAUTH_SECRET: "Y2hhbmdlLW1lLXNlY3JldA==" # change-me-secret
+  SECRET_KEY: N2Q3ZDI0YTkxOTMxM2NmMmQwZWI1ZjRjYjNkYzFjOTI1ODI4NWVlZWIxZWY0MjFiOTIwYmYwNTFjNWVmOTQ3ZA==
+  JWT_SECRET_KEY: ZTVmZmM5Nzc5ZGY1ZjU2YmI3OGJlMDVjMWQ2ODM3ODk0YTQ2OWZiNWU4Y2Y2ZjU3YjY4MTQyN2MzZDE5ZTA3
+  GOOGLE_CLIENT_ID: Y2hhbmdlLW1lLWNsaWVudC1pZA==
+  GOOGLE_CLIENT_SECRET: Y2hhbmdlLW1lLWNsaWVudC1zZWNyZXQ=
+  NEXTAUTH_SECRET: N2Q3ZDI0YTkxOTMxM2NmMmQwZWI1ZjRjYjNkYzFjOTI1ODI4NWVlZWIxZWY0MjFiOTIwYmYwNTFjNWVmOTQ3ZA==
   OPENAI_API_KEY: ""
-  GOOGLE_API_KEY: ""
-  GITHUB_TOKEN: ""
+  GOOGLE_API_KEY: Y2hhbmdlLW1lLWdvb2dsZS1hcGkta2V5
+  GROQ_API_KEY: Y2hhbmdlLW1lLWdyb3EtYXBpLWtleQ==
+  GITHUB_TOKEN: Y2hhbmdlLW1lLWdpdGh1Yi10b2tlbg==
 ---
 
 # ── 2. PERSISTENT STORAGE CLAIMS ──────────────────────────────────────────────
@@ -125,6 +130,19 @@ spec:
   resources:
     requests:
       storage: 10Gi
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: whatsapp-pvc
+  namespace: udayai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
 ---
 
 # ── 3. DATASTORE DEPLOYMENTS ──────────────────────────────────────────────────
@@ -375,6 +393,63 @@ spec:
       targetPort: 11434
   selector:
     app: ollama
+# Browserless Chrome Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: browserless
+  namespace: udayai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: browserless
+  template:
+    metadata:
+      labels:
+        app: browserless
+    spec:
+      containers:
+        - name: browserless
+          image: browserless/chrome:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MAX_CONCURRENT_SESSIONS
+              value: "5"
+            - name: DEMO_MODE
+              value: "false"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1536Mi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: browserless-service
+  namespace: udayai
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: browserless
 ---
 
 # ── 5. APPLICATION SERVICES (BACKEND & FRONTEND) ──────────────────────────────
@@ -413,6 +488,26 @@ spec:
                 secretKeyRef:
                   name: udayai-secrets
                   key: POSTGRES_PASSWORD
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: udayai-secrets
+                  key: SECRET_KEY
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: udayai-secrets
+                  key: JWT_SECRET_KEY
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: udayai-secrets
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: udayai-secrets
+                  key: GOOGLE_CLIENT_SECRET
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -423,16 +518,25 @@ spec:
                 secretKeyRef:
                   name: udayai-secrets
                   key: GOOGLE_API_KEY
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: udayai-secrets
+                  key: GROQ_API_KEY
             - name: GITHUB_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: udayai-secrets
                   key: GITHUB_TOKEN
+            - name: BROWSERLESS_URL
+              value: "ws://browserless-service:3000"
           ports:
             - containerPort: 8000
           volumeMounts:
             - name: upload-storage
               mountPath: /app/data/uploads
+            - name: whatsapp-storage
+              mountPath: /app/data/playwright_whatsapp
           resources:
             limits:
               cpu: "1"
@@ -456,6 +560,9 @@ spec:
         - name: upload-storage
           persistentVolumeClaim:
             claimName: upload-pvc
+        - name: whatsapp-storage
+          persistentVolumeClaim:
+            claimName: whatsapp-pvc
 ---
 
 apiVersion: v1

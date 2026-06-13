@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 from langchain_core.messages import AIMessage
 
@@ -25,7 +26,7 @@ async def run_calendar_agent(state: AgentState) -> dict:
     logger.info(f"Calendar agent processing: {latest[:80]}")
 
     operation = _parse_calendar_intent(latest)
-    result = await _execute_calendar_operation(operation, latest)
+    result = await _execute_calendar_operation(operation, latest, state.get("user_id"))
 
     return {
         "agent_results": {
@@ -54,7 +55,7 @@ def _parse_calendar_intent(message: str) -> str:
     return "today"
 
 
-async def _execute_calendar_operation(operation: str, message: str) -> str:
+async def _execute_calendar_operation(operation: str, message: str, user_id: Any | None) -> str:
     """Execute Calendar operations via MCP if enabled, else fall back to instructions."""
     from app.config import get_settings
     from app.mcp.client import mcp_manager
@@ -69,7 +70,7 @@ async def _execute_calendar_operation(operation: str, message: str) -> str:
                 # List events for today
                 t_min = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
                 t_max = now.replace(hour=23, minute=59, second=59, microsecond=999).isoformat()
-                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max})
+                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max}, user_id=user_id)
                 content = res.get("content", [])
                 if content:
                     return f"📅 **Today's Events (Calendar MCP):**\n\n{content[0].get('text', '')}"
@@ -84,7 +85,7 @@ async def _execute_calendar_operation(operation: str, message: str) -> str:
                     "summary": f"Event: {message[:50]}",
                     "start_time": start_t,
                     "end_time": end_t
-                })
+                }, user_id=user_id)
                 content = res.get("content", [])
                 if content:
                     return f"📅 **Event Scheduled (Calendar MCP):**\n\n{content[0].get('text', '')}"
@@ -93,7 +94,7 @@ async def _execute_calendar_operation(operation: str, message: str) -> str:
                 tomorrow = now + timedelta(days=1)
                 t_min = tomorrow.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
                 t_max = tomorrow.replace(hour=23, minute=59, second=59, microsecond=999).isoformat()
-                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max})
+                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max}, user_id=user_id)
                 content = res.get("content", [])
                 if content:
                     return f"📅 **Tomorrow's Events (Calendar MCP):**\n\n{content[0].get('text', '')}"
@@ -102,7 +103,7 @@ async def _execute_calendar_operation(operation: str, message: str) -> str:
             elif operation == "week":
                 t_min = now.isoformat()
                 t_max = (now + timedelta(days=7)).isoformat()
-                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max})
+                res = await mcp_manager.call_tool("calendar", "list_events", {"calendar_id": "primary", "time_min": t_min, "time_max": t_max}, user_id=user_id)
                 content = res.get("content", [])
                 if content:
                     return f"📅 **Weekly Schedule (Calendar MCP):**\n\n{content[0].get('text', '')}"

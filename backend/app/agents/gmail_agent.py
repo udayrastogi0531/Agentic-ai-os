@@ -8,6 +8,7 @@ Currently uses mock/placeholder - requires Google OAuth setup for real integrati
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from langchain_core.messages import AIMessage
 
@@ -51,7 +52,7 @@ def _parse_email_intent(message: str) -> str:
     return "read"
 
 
-async def _execute_email_operation(operation: str, message: str, user_id: str | None) -> str:
+async def _execute_email_operation(operation: str, message: str, user_id: Any | None) -> str:
     """Execute Gmail operations via MCP if enabled, else fall back to instructions."""
     from app.config import get_settings
     from app.mcp.client import mcp_manager
@@ -62,7 +63,7 @@ async def _execute_email_operation(operation: str, message: str, user_id: str | 
     if use_mcp:
         try:
             if operation == "read" or operation == "summarize":
-                res = await mcp_manager.call_tool("gmail", "search_messages", {"query": "is:unread", "max_results": 5})
+                res = await mcp_manager.call_tool("gmail", "search_messages", {"query": "is:unread", "max_results": 5}, user_id=user_id)
                 content = res.get("content", [])
                 if content:
                     return f"📧 **Unread Emails (Gmail MCP):**\n\n{content[0].get('text', '')}"
@@ -74,7 +75,7 @@ async def _execute_email_operation(operation: str, message: str, user_id: str | 
                     "to": "udayrastogi0531@gmail.com", 
                     "subject": "Update from Uday AI", 
                     "body": message
-                })
+                }, user_id=user_id)
                 content = res.get("content", [])
                 if content:
                     return f"📧 **Email Sent (Gmail MCP):**\n\n{content[0].get('text', '')}"
@@ -84,7 +85,7 @@ async def _execute_email_operation(operation: str, message: str, user_id: str | 
                     "to": "recipient@example.com",
                     "subject": "Draft from Uday AI",
                     "body": message
-                })
+                }, user_id=user_id)
                 content = res.get("content", [])
                 if content:
                     return f"📧 **Draft Created (Gmail MCP):**\n\n{content[0].get('text', '')}"
